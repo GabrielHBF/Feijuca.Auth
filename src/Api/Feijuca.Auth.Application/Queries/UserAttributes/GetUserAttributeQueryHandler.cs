@@ -13,7 +13,7 @@ namespace Feijuca.Auth.Application.Queries.UserAttributes
 
         public async Task<Result<Dictionary<string, string[]>>> Handle(GetUserAttributeQuery request, CancellationToken cancellationToken)
         {
-            var result = await _userRepository.GetAsync(tenantService.Tenant.Name, request.Username, cancellationToken);
+            var result = await _userRepository.GetAsync(request.Username, cancellationToken);
 
             if (!result.IsSuccess)
             {

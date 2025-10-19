@@ -12,7 +12,7 @@ namespace Feijuca.Auth.Application.Commands.User
 
         public async Task<Result<TokenDetailsResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            var tokenDetails = await _userRepository.RefreshTokenAsync(request.Tenant, request.RefreshToken, cancellationToken);
+            var tokenDetails = await _userRepository.RefreshTokenAsync(request.RefreshToken, cancellationToken);
 
             if (tokenDetails.IsSuccess)
             {

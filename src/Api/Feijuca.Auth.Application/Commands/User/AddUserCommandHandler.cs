@@ -12,12 +12,12 @@ namespace Feijuca.Auth.Application.Commands.User
         public async Task<Result<Guid>> Handle(AddUserCommand request, CancellationToken cancellationToken)
         {
             var user = request.AddUserRequest.ToDomain(request.Tenant);
-            var result = await _userRepository.CreateAsync(request.Tenant, user, cancellationToken);
+            var result = await _userRepository.CreateAsync(user, cancellationToken);
 
             if (result.IsSuccess)
             {
-                var keycloakUser = await _userRepository.GetAsync(request.Tenant, user.Username, cancellationToken);
-                result = await _userRepository.ResetPasswordAsync(keycloakUser.Data.Id, request.Tenant, user.Password, cancellationToken);
+                var keycloakUser = await _userRepository.GetAsync(user.Username, cancellationToken);
+                result = await _userRepository.ResetPasswordAsync(keycloakUser.Data.Id, user.Password, cancellationToken);
 
                 if (result.IsSuccess)
                 {

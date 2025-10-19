@@ -6,11 +6,11 @@ using MediatR;
 
 namespace Feijuca.Auth.Application.Commands.UserAttributes
 {
-    public class DeleteUserAttributesCommandHandler(IUserRepository userRepository, ITenantService tenantService) : IRequestHandler<DeleteUserAttributesCommand, Result<bool>>
+    public class DeleteUserAttributesCommandHandler(IUserRepository userRepository) : IRequestHandler<DeleteUserAttributesCommand, Result<bool>>
     {
         public async Task<Result<bool>> Handle(DeleteUserAttributesCommand request, CancellationToken cancellationToken)
         {
-            var user = await userRepository.GetAsync(tenantService.Tenant.Name, request.Username, cancellationToken);
+            var user = await userRepository.GetAsync(request.Username, cancellationToken);
 
             if (user?.Data == null)
             {

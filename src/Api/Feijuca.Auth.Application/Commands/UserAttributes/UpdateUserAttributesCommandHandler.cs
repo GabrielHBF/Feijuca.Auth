@@ -7,11 +7,11 @@ using MediatR;
 
 namespace Feijuca.Auth.Application.Commands.UserAttributes
 {
-    public class UpdateUserAttributesCommandHandler(IUserRepository userRepository, ITenantService tenantService) : IRequestHandler<UpdateUserAttributesCommand, Result<bool>>
+    public class UpdateUserAttributesCommandHandler(IUserRepository userRepository) : IRequestHandler<UpdateUserAttributesCommand, Result<bool>>
     {
         public async Task<Result<bool>> Handle(UpdateUserAttributesCommand request, CancellationToken cancellationToken)
         {
-            var user = await userRepository.GetAsync(tenantService.Tenant.Name, request.Username, cancellationToken);
+            var user = await userRepository.GetAsync(request.Username, cancellationToken);
 
             var oldAttributesUpdated = user.Data.Attributes;
 

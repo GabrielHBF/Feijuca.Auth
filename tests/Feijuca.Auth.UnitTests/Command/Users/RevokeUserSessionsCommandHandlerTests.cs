@@ -27,7 +27,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
             var cancellationToken = _fixture.Create<CancellationToken>();
 
             _userRepositoryMock
-                .Setup(repo => repo.RevokeSessionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.RevokeSessionsByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<bool>.Success(true));
 
             // Act
@@ -39,7 +39,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
                 .Should()
                 .BeTrue();
 
-            _userRepositoryMock.Verify(repo => repo.RevokeSessionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once());
+            _userRepositoryMock.Verify(repo => repo.RevokeSessionsByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once());
             _userRepositoryMock.VerifyNoOtherCalls();
         }
 
@@ -51,7 +51,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
             var resultError = Result<bool>.Failure(UserErrors.RevokeSessionsError);
 
             _userRepositoryMock
-                .Setup(repo => repo.RevokeSessionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.RevokeSessionsByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(resultError);
 
             // Act
@@ -63,7 +63,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
                 .Should()
                 .Be(UserErrors.RevokeSessionsError);
 
-            _userRepositoryMock.Verify(repo => repo.RevokeSessionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once());
+            _userRepositoryMock.Verify(repo => repo.RevokeSessionsByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once());
             _userRepositoryMock.VerifyNoOtherCalls();
         }
     }

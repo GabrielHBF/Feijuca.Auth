@@ -9,7 +9,7 @@ namespace Feijuca.Auth.Application.Commands.User
         private readonly IUserRepository _userRepository = userRepository;
         public async Task<Result> Handle(RevokeUserSessionsCommand request, CancellationToken cancellationToken)
         {
-            var result = await _userRepository.RevokeSessionsAsync(request.UserId, cancellationToken);
+            var result = await _userRepository.RevokeSessionsByUserIdAsync(request.UserId, cancellationToken);
 
             if (result.IsSuccess)
             {
