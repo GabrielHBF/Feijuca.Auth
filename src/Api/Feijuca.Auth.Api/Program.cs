@@ -68,7 +68,6 @@ if (KeycloakSettings?.Realms?.Any() ?? false)
 }
 
 app.UseHttpsRedirection()
-   .UseHttpsRedirection()
    .UseMiddleware<ConfigValidationMiddleware>();
 
 app.MapControllers();
