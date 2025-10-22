@@ -282,3 +282,4 @@ public class UsersController(IMediator mediator) : ControllerBase
         return BadRequest(result.Error);
     }
 }
+

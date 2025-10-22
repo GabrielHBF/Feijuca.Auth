@@ -26,9 +26,10 @@ builder.Services
     .AddServices()
     .AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); })
     .AddMongo(applicationSettings.MongoSettings)
-    .AddApiAuthentication(out KeycloakSettings KeycloakSettings)
+    .AddApiAuthentication(out KeycloakSettings keycloakSettings)
+    .AddHealthCheckers(keycloakSettings)
     .AddEndpointsApiExplorer()
-    .AddSwagger(KeycloakSettings)
+    .AddSwagger(keycloakSettings)
     .AddHttpClients()    
     .ConfigureValidationErrorResponses()
     .AddCors(options =>
@@ -53,6 +54,8 @@ var app = builder.Build();
 
 app.MapOpenApi();
 app.MapScalarApiReference(options => options.Servers = []);
+app.MapHealthChecks("/health");
+
 app.UseCors("AllowAllOrigins")
    .UseExceptionHandler()
    .UseSwagger()
@@ -61,14 +64,15 @@ app.UseCors("AllowAllOrigins")
        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Feijuca.Auth.Api");
    });
 
-if (KeycloakSettings?.Realms?.Any() ?? false)
+if (keycloakSettings?.Realms?.Any() ?? false)
 {
     app.UseAuthorization()
        .UseTenantMiddleware();
 }
 
 app.UseHttpsRedirection()
-   .UseMiddleware<ConfigValidationMiddleware>();
+   .UseMiddleware<ConfigValidationMiddleware>()
+   .UseHealthCheckers();
 
 app.MapControllers();
 
