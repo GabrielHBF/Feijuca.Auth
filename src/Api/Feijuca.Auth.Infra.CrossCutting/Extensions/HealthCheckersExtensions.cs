@@ -10,16 +10,22 @@ namespace Feijuca.Auth.Infra.CrossCutting.Extensions
     {
         public static IServiceCollection AddHealthCheckers(this IServiceCollection services, KeycloakSettings keycloakSettings)
         {
-            services.AddHealthChecks()
-                .AddMongoDb(
-                    clientFactory: sp => sp.GetRequiredService<MongoDB.Driver.IMongoClient>(),
-                    name: "MongoDB",
-                    tags: ["db", "mongo"])
-                .AddUrlGroup(
-                    new Uri(keycloakSettings.ServerSettings.Url + "/health/ready"),
-                    name: "Keycloak-Ready",
-                    failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy,
-                    tags: ["keycloak", "auth"]);
+            if (keycloakSettings != null)
+            {
+                var baseUri = new Uri(keycloakSettings.ServerSettings.Url, UriKind.Absolute);
+                var keycloakHealthUri = new Uri(baseUri, "health/ready");
+
+                services.AddHealthChecks()
+                    .AddMongoDb(
+                        clientFactory: sp => sp.GetRequiredService<MongoDB.Driver.IMongoClient>(),
+                        name: "mongoDB",
+                        tags: ["db", "mongo"])
+                    .AddUrlGroup(
+                        keycloakHealthUri,
+                        name: "keycloak",
+                        failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy,
+                        tags: ["keycloak", "auth"]);
+            }
 
             return services;
         }
