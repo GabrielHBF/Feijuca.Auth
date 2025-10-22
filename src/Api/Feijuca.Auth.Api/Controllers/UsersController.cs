@@ -9,7 +9,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Feijuca.Auth.Http.Responses;
 
 namespace Feijuca.Auth.Api.Controllers;
 

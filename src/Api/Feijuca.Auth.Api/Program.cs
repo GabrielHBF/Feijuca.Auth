@@ -22,6 +22,7 @@ builder.Services
     .AddRepositories()
     .AddValidators()
     .AddServices()
+    .AddHealthCheckers()
     .AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); })
     .AddMongo(applicationSettings)
     .AddApiAuthentication(out Feijuca.Auth.Common.Models.KeycloakSettings KeycloakSettings)
@@ -45,6 +46,7 @@ var app = builder.Build();
 
 app.MapOpenApi();
 app.MapScalarApiReference(options => options.Servers = []);
+app.MapHealthChecks("/health");
 
 app.UseCors("AllowAllOrigins")
    .UseExceptionHandler()
@@ -62,7 +64,8 @@ if (KeycloakSettings?.Realms?.Any() ?? false)
 
 app.UseHttpsRedirection()
    .UseHttpsRedirection()
-   .UseMiddleware<ConfigValidationMiddleware>();
+   .UseMiddleware<ConfigValidationMiddleware>()
+   .UseHealthCheckers();
 
 app.MapControllers();
 
