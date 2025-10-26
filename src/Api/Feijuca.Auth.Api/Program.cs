@@ -54,7 +54,6 @@ var app = builder.Build();
 
 app.MapOpenApi();
 app.MapScalarApiReference(options => options.Servers = []);
-app.MapHealthChecks("/health");
 
 app.UseCors("AllowAllOrigins")
    .UseExceptionHandler()
