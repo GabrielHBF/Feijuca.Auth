@@ -7,6 +7,7 @@ using Flurl;
 using Mattioli.Configurations.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Feijuca.Auth.Infra.Data.Repositories
@@ -291,6 +292,11 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             if (response.IsSuccessStatusCode)
             {
                 var userResult = await GetAsync(username, cancellationToken);
+
+                if (userResult.IsFailure)
+                {
+                    return Result<TokenDetails>.Failure(UserErrors.InvalidUserNameOrPasswordError);
+                }
 
                 var userId = userResult.Data.Id;
 

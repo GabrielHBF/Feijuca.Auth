@@ -70,7 +70,6 @@ if (keycloakSettings?.Realms?.Any() ?? false)
 }
 
 app.UseHttpsRedirection()
-   .UseHttpsRedirection()
    .UseMiddleware<ConfigValidationMiddleware>()
    .UseHealthCheckers();
 
