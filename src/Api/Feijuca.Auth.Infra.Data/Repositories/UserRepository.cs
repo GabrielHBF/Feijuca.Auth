@@ -97,10 +97,11 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
             using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
 
+            var tenant = user.Attributes["Tenant"]?.FirstOrDefault();
             var url = httpClient.BaseAddress
                     .AppendPathSegment("admin")
                     .AppendPathSegment("realms")
-                    .AppendPathSegment(_tenantService.Tenant.Name)
+                    .AppendPathSegment(tenant)
                     .AppendPathSegment("users");
 
             var json = JsonConvert.SerializeObject(user, Settings);
@@ -147,6 +148,37 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             return Result<User>.Success(user[0]);
         }
 
+        public async Task<Result<User>> GetAsync(string username, string tenant, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                return Result<User>.Failure(UserErrors.InvalidUserNameOrPasswordError);
+            }
+
+            var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
+            using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
+
+            var url = httpClient.BaseAddress
+                    .AppendPathSegment("admin")
+                    .AppendPathSegment("realms")
+                    .AppendPathSegment(tenant)
+                    .AppendPathSegment("users");
+
+            url = url.SetQueryParam("username", username);
+
+            using var response = await httpClient.GetAsync(url, cancellationToken);
+            var keycloakUserContent = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            var user = JsonConvert.DeserializeObject<List<User>>(keycloakUserContent)!;
+
+            if (user.Count == 0)
+            {
+                return Result<User>.Failure(UserErrors.InvalidUserNameOrPasswordError);
+            }
+
+            return Result<User>.Success(user[0]);
+        }
+
         public async Task<Result<bool>> ResetPasswordAsync(Guid id, string password, CancellationToken cancellationToken)
         {
             var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
@@ -156,6 +188,40 @@ namespace Feijuca.Auth.Infra.Data.Repositories
                     .AppendPathSegment("admin")
                     .AppendPathSegment("realms")
                     .AppendPathSegment(_tenantService.Tenant.Name)
+                    .AppendPathSegment("users")
+                    .AppendPathSegment(id)
+                    .AppendPathSegment("reset-password");
+
+            var passwordData = new
+            {
+                type = "password",
+                temporary = false,
+                value = password
+            };
+
+            var json = JsonConvert.SerializeObject(passwordData, Settings);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            using var response = await httpClient.PutAsync(url, httpContent, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Result<bool>.Success(true);
+            }
+
+            var responseMessage = await response.Content.ReadAsStringAsync(cancellationToken);
+            UserErrors.SetTechnicalMessage(responseMessage);
+            return Result<bool>.Failure(UserErrors.WrongPasswordDefinition);
+        }
+
+        public async Task<Result<bool>> ResetPasswordAsync(Guid id, string password, string tenant, CancellationToken cancellationToken)
+        {
+            var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
+            using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
+
+            var url = httpClient.BaseAddress
+                    .AppendPathSegment("admin")
+                    .AppendPathSegment("realms")
+                    .AppendPathSegment(tenant)
                     .AppendPathSegment("users")
                     .AppendPathSegment(id)
                     .AppendPathSegment("reset-password");

@@ -66,7 +66,6 @@ public class UsersController(IMediator mediator) : ControllerBase
     /// <response code="403">The request was understood, but the server is refusing to fulfill it due to insufficient permissions.</response>
     /// <response code="500">An internal server error occurred while processing the request.</response>
     [HttpPost]
-    [Authorize]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
