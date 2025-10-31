@@ -8,18 +8,6 @@ namespace Feijuca.Auth.Http.Client
 {
     public class FeijucaAuthClient(HttpClient httpClient) : BaseHttpClient(httpClient), IFeijucaAuthClient
     {
-        public async Task<Result<TokenDetailsResponse>> LoginAsync(CancellationToken cancellationToken)
-        {
-            var result = await PostAsync<LoginUserRequest, TokenDetailsResponse>("users/login", new LoginUserRequest("hangfire@coderaw.io", "hangfire@coderaw"), cancellationToken);
-
-            if (string.IsNullOrEmpty(result.AccessToken))
-            {
-                return Result<TokenDetailsResponse>.Failure(FeijucaErrors.GenerateTokenError);
-            }
-
-            return Result<TokenDetailsResponse>.Success(result);
-        }
-
         public async Task<Result<TokenDetailsResponse>> AuthenticateUserAsync(string username, string password, CancellationToken cancellationToken)
         {
             var result = await PostAsync<LoginUserRequest, TokenDetailsResponse>("users/login", new LoginUserRequest(username, password), cancellationToken);

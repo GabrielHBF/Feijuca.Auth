@@ -15,7 +15,8 @@
 
   <ItemGroup>
     <PackageReference Include="Flurl" Version="4.0.0" />
-    <PackageReference Include="Mattioli.Configurations" Version="1.47.0" />
+    <PackageReference Include="Mattioli.Configurations" Version="1.62.0" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.9.0" />
   </ItemGroup>
 
   <ItemGroup>
