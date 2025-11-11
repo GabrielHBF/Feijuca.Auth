@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Mattioli.Configurations" Version="1.63.0" />
+    <PackageReference Include="Mattioli.Configurations" Version="1.65.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
