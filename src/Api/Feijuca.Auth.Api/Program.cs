@@ -44,12 +44,6 @@ builder.Services
     })
     .AddControllers();
 
-if (!string.IsNullOrEmpty(applicationSettings.MltSettings.OpenTelemetryColectorUrl))
-{
-    builder.Services.AddOpenTelemetry(applicationSettings.MltSettings);
-    builder.ConfigureTelemetryAndLogging(applicationSettings);
-}
-
 var app = builder.Build();
 
 app.MapOpenApi();
