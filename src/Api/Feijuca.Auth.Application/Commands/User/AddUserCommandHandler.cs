@@ -2,14 +2,15 @@
 using Feijuca.Auth.Application.Mappers;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
+using LiteBus.Commands.Abstractions;
 
 namespace Feijuca.Auth.Application.Commands.User
 {
-    public class AddUserCommandHandler(IUserRepository userRepository) : IRequestHandler<AddUserCommand, Result<Guid>>
+    public class AddUserCommandHandler(IUserRepository userRepository) : ICommandHandler<AddUserCommand, Result<Guid>>
     {
         private readonly IUserRepository _userRepository = userRepository;
 
-        public async Task<Result<Guid>> Handle(AddUserCommand request, CancellationToken cancellationToken)
+        public async Task<Result<Guid>> HandleAsync(AddUserCommand request, CancellationToken cancellationToken)
         {
             var user = request.AddUserRequest.ToDomain(request.Tenant);
             var result = await _userRepository.CreateAsync(user, cancellationToken);

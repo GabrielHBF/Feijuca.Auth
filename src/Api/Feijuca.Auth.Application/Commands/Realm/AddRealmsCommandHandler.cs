@@ -3,12 +3,13 @@ using Feijuca.Auth.Common.Errors;
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
+using LiteBus.Commands.Abstractions;
 
 namespace Feijuca.Auth.Application.Commands.Realm
 {
-    public class AddRealmsCommandHandler(IRealmService realmService) : IRequestHandler<AddRealmsCommand, Result<bool>>
+    public class AddRealmsCommandHandler(IRealmService realmService) : ICommandHandler<AddRealmsCommand, Result<bool>>
     {
-        public async Task<Result<bool>> Handle(AddRealmsCommand request, CancellationToken cancellationToken)
+        public async Task<Result<bool>> HandleAsync(AddRealmsCommand request, CancellationToken cancellationToken)
         {
             foreach (var realmRequest in request.AddRealmsRequest)
             {

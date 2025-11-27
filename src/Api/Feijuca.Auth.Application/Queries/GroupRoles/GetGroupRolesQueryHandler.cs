@@ -2,16 +2,16 @@
 using Feijuca.Auth.Common.Errors;
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
-using MediatR;
 using Feijuca.Auth.Application.Responses;
+using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.GroupRoles
 {
-    public class GetGroupRolesQueryHandler(IGroupRolesRepository roleGroupRepository) : IRequestHandler<GetGroupRolesQuery, Result<IEnumerable<GroupRolesResponse>>>
+    public class GetGroupRolesQueryHandler(IGroupRolesRepository roleGroupRepository) : IQueryHandler<GetGroupRolesQuery, Result<IEnumerable<GroupRolesResponse>>>
     {
         private readonly IGroupRolesRepository _roleGroupRepository = roleGroupRepository;
 
-        public async Task<Result<IEnumerable<GroupRolesResponse>>> Handle(GetGroupRolesQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<GroupRolesResponse>>> HandleAsync(GetGroupRolesQuery request, CancellationToken cancellationToken)
         {
             var groupsRolesResult = await _roleGroupRepository.GetGroupRolesAsync(request.GroupId, cancellationToken);
 

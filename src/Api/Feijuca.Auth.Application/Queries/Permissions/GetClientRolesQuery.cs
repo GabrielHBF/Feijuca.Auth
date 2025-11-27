@@ -1,9 +1,8 @@
 ﻿using Mattioli.Configurations.Models;
-
-using MediatR;
 using Feijuca.Auth.Application.Responses;
+using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.Permissions
 {
-    public record GetClientRolesQuery() : IRequest<Result<IEnumerable<ClientRoleResponse>>>;
+    public record GetClientRolesQuery() : IQuery<Result<IEnumerable<ClientRoleResponse>>>;
 }

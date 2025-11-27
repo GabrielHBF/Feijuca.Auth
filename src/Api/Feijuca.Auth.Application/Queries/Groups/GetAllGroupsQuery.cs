@@ -1,8 +1,8 @@
 ﻿using Mattioli.Configurations.Models;
-using MediatR;
 using Feijuca.Auth.Application.Responses;
+using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.Groups
 {
-    public record GetAllGroupsQuery(bool NotDisplayInternalGroups) : IRequest<Result<IEnumerable<GroupResponse>>>;
+    public record GetAllGroupsQuery(bool NotDisplayInternalGroups) : IQuery<Result<IEnumerable<GroupResponse>>>;
 }

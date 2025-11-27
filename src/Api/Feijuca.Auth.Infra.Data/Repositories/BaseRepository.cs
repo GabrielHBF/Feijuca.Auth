@@ -1,7 +1,5 @@
-﻿using Mattioli.Configurations.Models;
-using Feijuca.Auth.Domain.Interfaces;
+﻿using Feijuca.Auth.Domain.Interfaces;
 using System.Net.Http.Headers;
-using System.Threading;
 
 namespace Feijuca.Auth.Infra.Data.Repositories
 {

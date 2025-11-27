@@ -2,6 +2,8 @@
 using Feijuca.Auth.Application.Queries.GroupRoles;
 using Feijuca.Auth.Application.Requests.GroupRoles;
 using Feijuca.Auth.Attributes;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
 using Mattioli.Configurations.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +14,8 @@ namespace Feijuca.Auth.Api.Controllers
     [Route("api/v1/groups-roles")]
     [ApiController]
     [Authorize]
-    public class GroupsRolesController(IMediator mediator) : ControllerBase
+    public class GroupsRolesController(ICommandMediator commandMediator, IQueryMediator queryMediator) : ControllerBase
     {
-        private readonly IMediator _mediator = mediator;
-
         /// <summary>
         /// Adds a role to a specific group in the specified Keycloak realm.
         /// </summary>
@@ -35,7 +35,7 @@ namespace Feijuca.Auth.Api.Controllers
             [FromBody] AddClientRoleToGroupRequest addRoleToGroup,
             CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new AddClientRoleToGroupCommand(id, addRoleToGroup), cancellationToken);
+            var result = await commandMediator.SendAsync(new AddClientRoleToGroupCommand(id, addRoleToGroup), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -65,7 +65,7 @@ namespace Feijuca.Auth.Api.Controllers
             CancellationToken cancellationToken)
         {
             var roleToGroupRequest = new AddClientRoleToGroupRequest(groupid, roleid);
-            var result = await _mediator.Send(new RemoveRoleFromGroupCommand(groupid, roleToGroupRequest), cancellationToken);
+            var result = await commandMediator.SendAsync(new RemoveRoleFromGroupCommand(groupid, roleToGroupRequest), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -92,7 +92,7 @@ namespace Feijuca.Auth.Api.Controllers
             [FromRoute] string id,
             CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetGroupRolesQuery(id), cancellationToken);
+            var result = await queryMediator.QueryAsync(new GetGroupRolesQuery(id), cancellationToken);
 
             if (result.IsSuccess)
             {

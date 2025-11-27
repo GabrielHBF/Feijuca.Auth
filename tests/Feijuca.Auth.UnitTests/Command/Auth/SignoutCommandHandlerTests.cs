@@ -31,7 +31,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Auth
                 .ReturnsAsync(signoutResult);
 
             // Act
-            var result = await _handler.Handle(signoutCommand, cancellationToken);
+            var result = await _handler.HandleAsync(signoutCommand, cancellationToken);
 
             // Assert
             result
@@ -55,7 +55,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Auth
                 .ReturnsAsync(signoutResult);
 
             // Act
-            var result = await _handler.Handle(signoutCommand, cancellationToken);
+            var result = await _handler.HandleAsync(signoutCommand, cancellationToken);
 
             // Assert
             result

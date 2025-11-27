@@ -1,8 +1,7 @@
-﻿using Feijuca.Auth.Application.Requests.UsersAttributes;
+﻿using LiteBus.Commands.Abstractions;
 using Mattioli.Configurations.Models;
-using MediatR;
 
 namespace Feijuca.Auth.Application.Commands.UserAttributes
 {
-    public record DeleteUserAttributesCommand(string Username, IEnumerable<string> DeleteUserAttributeRequest) : IRequest<Result<bool>>;
+    public record DeleteUserAttributesCommand(string Username, IEnumerable<string> DeleteUserAttributeRequest) : ICommand<Result<bool>>;
 }

@@ -31,7 +31,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
                 .ReturnsAsync(Result<bool>.Success(true));
 
             // Act
-            var result = await _handler.Handle(revokeRequest, cancellationToken);
+            var result = await _handler.HandleAsync(revokeRequest, cancellationToken);
 
             // Assert
             result
@@ -55,7 +55,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
                 .ReturnsAsync(resultError);
 
             // Act
-            var result = await _handler.Handle(revokeRequest, cancellationToken);
+            var result = await _handler.HandleAsync(revokeRequest, cancellationToken);
 
             // Assert
             result

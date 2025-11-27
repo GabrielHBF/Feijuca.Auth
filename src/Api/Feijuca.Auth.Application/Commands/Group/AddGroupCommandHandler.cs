@@ -1,6 +1,7 @@
 ﻿using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
+using LiteBus.Commands.Abstractions;
 using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Application.Commands.Group
@@ -9,7 +10,7 @@ namespace Feijuca.Auth.Application.Commands.Group
     {
         private readonly IGroupRepository _groupRepository = groupRepository;
 
-        public async Task<Result<bool>> Handle(AddGroupCommand request, CancellationToken cancellationToken)
+        public async Task<Result<bool>> HandleAsync(AddGroupCommand request, CancellationToken cancellationToken)
         {
             var result = await _groupRepository.CreateAsync(request.AddGroupRequest.Name,
                 tenantProvider.Tenant.Name,

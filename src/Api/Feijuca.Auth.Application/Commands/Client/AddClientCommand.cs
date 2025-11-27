@@ -1,9 +1,8 @@
 ﻿using Feijuca.Auth.Application.Requests.Client;
+using LiteBus.Commands.Abstractions;
 using Mattioli.Configurations.Models;
-
-using MediatR;
 
 namespace Feijuca.Auth.Application.Commands.Client
 {
-    public record AddClientCommand(AddClientRequest AddClientRequest) : IRequest<Result<bool>>;
+    public record AddClientCommand(AddClientRequest AddClientRequest) : ICommand<Result<bool>>;
 }

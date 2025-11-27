@@ -2,6 +2,8 @@
 using Feijuca.Auth.Application.Queries.UserAttributes;
 using Feijuca.Auth.Application.Requests.UsersAttributes;
 using Feijuca.Auth.Attributes;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +11,8 @@ namespace Feijuca.Auth.Api.Controllers
 {
     [Route("api/v1/users-attributes")]
     [ApiController]
-    public class UsersAttributesController(IMediator mediator) : ControllerBase
+    public class UsersAttributesController(ICommandMediator commandMediator, IQueryMediator queryMediator) : ControllerBase
     {
-        private readonly IMediator _mediator = mediator;
-
         /// <summary>
         /// Adds a new attribute to a user on the specified Keycloak realm.
         /// </summary>
@@ -30,7 +30,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiReader")]
         public async Task<IActionResult> GetUserAttributes([FromQuery] string username, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetUserAttributeQuery(username), cancellationToken);
+            var result = await queryMediator.QueryAsync(new GetUserAttributeQuery(username), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -59,7 +59,7 @@ namespace Feijuca.Auth.Api.Controllers
         public async Task<IActionResult> AddAtribute([FromQuery] string username, AddUserAttributesRequest addUserAttributeRequest,
             CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new AddUserAttributeCommand(username, addUserAttributeRequest), cancellationToken);
+            var result = await commandMediator.SendAsync(new AddUserAttributeCommand(username, addUserAttributeRequest), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -87,7 +87,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiWriter")]
         public async Task<IActionResult> UpdateUserAttributes([FromQuery] string username, UserAttributeRequest updateUserAttributeRequest, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new UpdateUserAttributesCommand(username, updateUserAttributeRequest), cancellationToken);
+            var result = await commandMediator.SendAsync(new UpdateUserAttributesCommand(username, updateUserAttributeRequest), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -115,7 +115,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiWriter")]
         public async Task<IActionResult> DeleteUserAttributes([FromQuery] string username, IEnumerable<string> attributeKeys, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new DeleteUserAttributesCommand(username, attributeKeys), cancellationToken);
+            var result = await commandMediator.SendAsync(new DeleteUserAttributesCommand(username, attributeKeys), cancellationToken);
 
             if (result.IsSuccess)
             {

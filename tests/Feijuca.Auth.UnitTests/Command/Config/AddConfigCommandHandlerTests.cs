@@ -1,7 +1,6 @@
 ﻿using AutoFixture;
 using Feijuca.Auth.Application.Commands.Config;
 using Feijuca.Auth.Common.Errors;
-using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
 using Feijuca.Auth.Providers;
@@ -35,7 +34,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Config
                 .ReturnsAsync(true);
 
             // Act
-            var result =  await _handler.Handle(addConfigCommand, cancellationToken);
+            var result =  await _handler.HandleAsync(addConfigCommand, cancellationToken);
 
             // Assert
             result
@@ -58,7 +57,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Config
                 .ReturnsAsync(false);
 
             // Act
-            var result = await _handler.Handle(addConfigCommand, cancellationToken);
+            var result = await _handler.HandleAsync(addConfigCommand, cancellationToken);
 
             // Assert
             result

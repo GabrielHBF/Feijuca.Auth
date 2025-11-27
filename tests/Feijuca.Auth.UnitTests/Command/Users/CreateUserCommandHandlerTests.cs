@@ -33,7 +33,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
                 .ReturnsAsync(createUserResult);
 
             // Act
-            var result = await _handler.Handle(createUserCommand, cancellationToken);
+            var result = await _handler.HandleAsync(createUserCommand, cancellationToken);
 
             // Assert
             result
@@ -74,7 +74,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
                 .ReturnsAsync(resetPasswordResult);
 
             // Act
-            var result = await _handler.Handle(createUserCommand, cancellationToken);
+            var result = await _handler.HandleAsync(createUserCommand, cancellationToken);
 
             // Assert
             result
@@ -117,7 +117,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
                 .ReturnsAsync(resetPasswordResult);
 
             // Act
-            var result = await _handler.Handle(createUserCommand, cancellationToken);
+            var result = await _handler.HandleAsync(createUserCommand, cancellationToken);
 
             // Assert
             result

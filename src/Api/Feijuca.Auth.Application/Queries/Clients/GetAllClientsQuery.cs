@@ -1,7 +1,7 @@
 ﻿using Feijuca.Auth.Application.Responses;
-using MediatR;
+using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.Clients
 {
-    public record GetAllClientsQuery() : IRequest<IEnumerable<ClientResponse>>;
+    public record GetAllClientsQuery() : IQuery<IEnumerable<ClientResponse>>;
 }

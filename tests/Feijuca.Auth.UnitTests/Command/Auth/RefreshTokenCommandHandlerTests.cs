@@ -34,7 +34,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Auth
                 .ReturnsAsync(refreshTokenResult);
 
             // Act
-            var result = await _handler.Handle(refreshTokenCommand, cancellationToken);
+            var result = await _handler.HandleAsync(refreshTokenCommand, cancellationToken);
 
             // Assert
             result
@@ -59,7 +59,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Auth
                 .ReturnsAsync(refreshTokenResult);
 
             // Act
-            var result = await _handler.Handle(refreshTokenCommand, cancellationToken);
+            var result = await _handler.HandleAsync(refreshTokenCommand, cancellationToken);
 
             // Assert
             result

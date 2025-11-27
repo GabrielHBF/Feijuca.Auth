@@ -1,8 +1,8 @@
 ﻿using Mattioli.Configurations.Models;
-using MediatR;
 using Feijuca.Auth.Application.Responses;
+using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.GroupRoles
 {
-    public record GetGroupRolesQuery(string GroupId) : IRequest<Result<IEnumerable<GroupRolesResponse>>>;
+    public record GetGroupRolesQuery(string GroupId) : IQuery<Result<IEnumerable<GroupRolesResponse>>>;
 }

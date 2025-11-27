@@ -1,8 +1,7 @@
-﻿using Mattioli.Configurations.Models;
-
-using MediatR;
+﻿using LiteBus.Commands.Abstractions;
+using Mattioli.Configurations.Models;
 
 namespace Feijuca.Auth.Application.Commands.User
 {
-    public record DeleteUserCommand(Guid Id) : IRequest<Result<bool>>;
+    public record DeleteUserCommand(Guid Id) : ICommand<Result<bool>>;
 }

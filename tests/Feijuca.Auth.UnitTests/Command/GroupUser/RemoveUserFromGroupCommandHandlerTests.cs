@@ -32,7 +32,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
                 .ReturnsAsync(deleteUserGroupResult);
 
             // Act
-            var result = await _handler.Handle(deleteUserGroupCommand, cacellationToken);
+            var result = await _handler.HandleAsync(deleteUserGroupCommand, cacellationToken);
 
             // Assert
             result
@@ -57,7 +57,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
                 .ReturnsAsync(deleteUserGroupResult);
 
             // Act
-            var result = await _handler.Handle(deleteUserGroupCommand, cacellationToken);
+            var result = await _handler.HandleAsync(deleteUserGroupCommand, cacellationToken);
 
             // Assert
             result

@@ -1,16 +1,15 @@
 ﻿using Feijuca.Auth.Common.Errors;
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
-
-using MediatR;
+using LiteBus.Commands.Abstractions;
 
 namespace Feijuca.Auth.Application.Commands.User
 {
-    public class DeleteUserCommandHandler(IUserRepository UserRepository) : IRequestHandler<DeleteUserCommand, Result<bool>>
+    public class DeleteUserCommandHandler(IUserRepository UserRepository) : ICommandHandler<DeleteUserCommand, Result<bool>>
     {
         private readonly IUserRepository _userRepository = UserRepository;
 
-        public async Task<Result<bool>> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        public async Task<Result<bool>> HandleAsync(DeleteUserCommand request, CancellationToken cancellationToken)
         {
             var result = await _userRepository.DeleteAsync(request.Id, cancellationToken);
 

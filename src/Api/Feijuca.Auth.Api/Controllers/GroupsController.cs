@@ -2,6 +2,8 @@
 using Feijuca.Auth.Application.Queries.Groups;
 using Feijuca.Auth.Application.Requests.User;
 using Feijuca.Auth.Attributes;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
 using Mattioli.Configurations.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +14,8 @@ namespace Feijuca.Auth.Api.Controllers
     [Route("api/v1/groups")]
     [ApiController]
     [Authorize]
-    public class GroupsController(IMediator mediator) : ControllerBase
+    public class GroupsController(ICommandMediator commandMediator, IQueryMediator queryMediator) : ControllerBase
     {
-        private readonly IMediator _mediator = mediator;
-
         /// <summary>
         /// Returns all groups registered in the realm
         /// </summary>
@@ -31,7 +31,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiReader")]
         public async Task<IActionResult> GetGroups(CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetAllGroupsQuery(true), cancellationToken);
+            var result = await queryMediator.QueryAsync(new GetAllGroupsQuery(true), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -59,7 +59,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiWriter")]
         public async Task<IActionResult> DeleteGroup([FromRoute] string id, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new DeleteGroupCommand(id), cancellationToken);
+            var result = await commandMediator.SendAsync(new DeleteGroupCommand(id), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -86,7 +86,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiWriter")]
         public async Task<IActionResult> CreateGroup([FromBody] AddGroupRequest addGroupRequest, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new AddGroupCommand(addGroupRequest), cancellationToken);
+            var result = await commandMediator.SendAsync(new AddGroupCommand(addGroupRequest), cancellationToken);
 
             if (result.IsSuccess)
             {

@@ -2,6 +2,8 @@
 using Feijuca.Auth.Application.Queries.GroupUser;
 using Feijuca.Auth.Application.Requests.GroupUsers;
 using Feijuca.Auth.Attributes;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
 using Mattioli.Configurations.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +14,8 @@ namespace Feijuca.Auth.Api.Controllers
     [Route("api/v1")]
     [ApiController]
     [Authorize]
-    public class GroupsUsersController(IMediator mediator) : ControllerBase
+    public class GroupsUsersController(ICommandMediator commandMediator, IQueryMediator queryMediator) : ControllerBase
     {
-        private readonly IMediator _mediator = mediator;
-
         /// <summary>
         /// Adds a user to a specific group in the specified Keycloak realm.
         /// </summary>
@@ -33,7 +33,7 @@ namespace Feijuca.Auth.Api.Controllers
         public async Task<IActionResult> AddUserToGroup([FromBody] AddUserToGroupRequest addUserToGroupRequest,
             CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new AddUserToGroupCommand(addUserToGroupRequest.UserId, addUserToGroupRequest.GroupId), cancellationToken);
+            var result = await commandMediator.SendAsync(new AddUserToGroupCommand(addUserToGroupRequest.UserId, addUserToGroupRequest.GroupId), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -60,7 +60,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiReader")]
         public async Task<IActionResult> GetUsersInGroup([FromQuery] GetUsersGroupRequest usersGroup, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetUsersGroupQuery(usersGroup), cancellationToken);
+            var result = await queryMediator.QueryAsync(new GetUsersGroupQuery(usersGroup), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -87,7 +87,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiWriter")]
         public async Task<IActionResult> RemoveUserFromGroup([FromBody] RemoveUserFromGroupRequest removeUserFromGroup, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new RemoveUserFromGroupCommand(removeUserFromGroup.UserId, removeUserFromGroup.GroupId), cancellationToken);
+            var result = await commandMediator.SendAsync(new RemoveUserFromGroupCommand(removeUserFromGroup.UserId, removeUserFromGroup.GroupId), cancellationToken);
 
             if (result.IsSuccess)
             {

@@ -39,7 +39,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
                 .ReturnsAsync(groupUserResult);
 
             // Act
-            var result = await _handler.Handle(groupUserCommand, cancellationToken);
+            var result = await _handler.HandleAsync(groupUserCommand, cancellationToken);
 
             // Assert
             result
@@ -68,7 +68,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
                 .ReturnsAsync(groupUserResult);
 
             // Act
-            var result = await _handler.Handle(groupUserCommand, cancellationToken);
+            var result = await _handler.HandleAsync(groupUserCommand, cancellationToken);
 
             // Assert
             result

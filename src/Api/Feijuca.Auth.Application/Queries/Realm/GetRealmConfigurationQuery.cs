@@ -1,6 +1,6 @@
-﻿using MediatR;
+﻿using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.Realm
 {
-    public record GetRealmConfigurationQuery(string Name) : IRequest<string>;
+    public record GetRealmConfigurationQuery(string Name) : IQuery<string>;
 }

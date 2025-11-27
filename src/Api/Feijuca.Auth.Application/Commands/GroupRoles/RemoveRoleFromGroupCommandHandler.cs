@@ -2,6 +2,7 @@
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
+using LiteBus.Commands.Abstractions;
 using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Application.Commands.GroupRoles;
@@ -15,7 +16,7 @@ public class RemoveRoleFromGroupCommandHandler(IGroupRepository groupRepository,
     private readonly IGroupRolesRepository _roleGroupRepository = roleGroupRepository;
     private readonly IClientRoleRepository _roleRepository = roleRepository;
 
-    public async Task<Result<bool>> Handle(RemoveRoleFromGroupCommand command, CancellationToken cancellationToken)
+    public async Task<Result<bool>> HandleAsync(RemoveRoleFromGroupCommand command, CancellationToken cancellationToken)
     {
         var groupsResult = await _groupRepository.GetAllAsync(tenantProvider.Tenant.Name, cancellationToken);
         if (groupsResult.IsSuccess && groupsResult.Data.Any(x => x.Id == command.GroupId))

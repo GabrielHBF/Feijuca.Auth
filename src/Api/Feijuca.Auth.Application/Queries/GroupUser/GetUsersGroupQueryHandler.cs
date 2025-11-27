@@ -5,6 +5,7 @@ using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
 using Feijuca.Auth.Providers;
 using Feijuca.Auth.Application.Responses;
+using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.GroupUser
 {
@@ -16,7 +17,7 @@ namespace Feijuca.Auth.Application.Queries.GroupUser
         private readonly IUserRepository _userRepository = userRepository;
         private readonly ITenantProvider _tenantProvider = tenantService;
 
-        public async Task<Result<PagedResult<UserGroupResponse>>> Handle(GetUsersGroupQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedResult<UserGroupResponse>>> HandleAsync(GetUsersGroupQuery request, CancellationToken cancellationToken)
         {
             var allGroupsResult = await _groupRepository.GetAllAsync(_tenantProvider.Tenant.Name, cancellationToken);
 

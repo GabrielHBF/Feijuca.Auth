@@ -34,7 +34,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.GroupRoles
                 .ReturnsAsync(groupRolesResult);
 
             // Act
-            var result = await _handler.Handle(groupRolesQuery, cancellationToken);
+            var result = await _handler.HandleAsync(groupRolesQuery, cancellationToken);
 
             // Assert
             result
@@ -59,7 +59,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.GroupRoles
                 .ReturnsAsync(groupRolesResult);
 
             // Act
-            var result = await _handler.Handle(groupRolesQuery, cancellationToken);
+            var result = await _handler.HandleAsync(groupRolesQuery, cancellationToken);
 
             // Assert
             result

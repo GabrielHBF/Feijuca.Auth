@@ -1,8 +1,7 @@
-﻿using Mattioli.Configurations.Models;
-
-using MediatR;
+﻿using LiteBus.Commands.Abstractions;
+using Mattioli.Configurations.Models;
 
 namespace Feijuca.Auth.Application.Commands.Config
 {
-    public record UpdateFeijucaConfigWithClientIdAndSecretCommandHandler : IRequest<Result<bool>>;
+    public record UpdateFeijucaConfigWithClientIdAndSecretCommandHandler : ICommand<Result<bool>>;
 }

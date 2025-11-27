@@ -1,15 +1,15 @@
 ﻿using Feijuca.Auth.Common.Errors;
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
-using MediatR;
+using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.UserAttributes
 {
-    public class GetUserAttributeQueryHandler(IUserRepository userRepository) : IRequestHandler<GetUserAttributeQuery, Result<Dictionary<string, string[]>>>
+    public class GetUserAttributeQueryHandler(IUserRepository userRepository) : IQueryHandler<GetUserAttributeQuery, Result<Dictionary<string, string[]>>>
     {
         private readonly IUserRepository _userRepository = userRepository;
 
-        public async Task<Result<Dictionary<string, string[]>>> Handle(GetUserAttributeQuery request, CancellationToken cancellationToken)
+        public async Task<Result<Dictionary<string, string[]>>> HandleAsync(GetUserAttributeQuery request, CancellationToken cancellationToken)
         {
             var result = await _userRepository.GetAsync(request.Username, cancellationToken);
 

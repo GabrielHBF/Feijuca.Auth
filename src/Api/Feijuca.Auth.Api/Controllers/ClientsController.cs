@@ -2,6 +2,8 @@
 using Feijuca.Auth.Application.Queries.Clients;
 using Feijuca.Auth.Application.Requests.Client;
 using Feijuca.Auth.Attributes;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +13,8 @@ namespace Feijuca.Auth.Api.Controllers;
 [Route("api/v1/clients")]
 [ApiController]
 [Authorize]
-public class ClientsController(IMediator mediator) : ControllerBase
+public class ClientsController(ICommandMediator commandMediator, IQueryMediator queryMediator ) : ControllerBase
 {
-    private readonly IMediator _mediator = mediator;
-
     /// <summary>
     /// Recovers all clients registered in the realm.
     /// </summary>
@@ -30,7 +30,7 @@ public class ClientsController(IMediator mediator) : ControllerBase
     [RequiredRole("Feijuca.ApiReader")]
     public async Task<IActionResult> GetClients(CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetAllClientsQuery(), cancellationToken);
+        var result = await queryMediator.QueryAsync(new GetAllClientsQuery(), cancellationToken);
 
         if (result.Any())
         {
@@ -56,7 +56,7 @@ public class ClientsController(IMediator mediator) : ControllerBase
     [RequiredRole("Feijuca.ApiWriter")]
     public async Task<IActionResult> CreateClient([FromBody] AddClientRequest addClient, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new AddClientCommand(addClient), cancellationToken);
+        var result = await commandMediator.SendAsync(new AddClientCommand(addClient), cancellationToken);
 
         if (result.IsSuccess)
         {

@@ -41,7 +41,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Permissions
                 .ReturnsAsync(rolesResult);
 
             // Act
-            var result = await _handler.Handle(rolesQuery, cancellationToken);
+            var result = await _handler.HandleAsync(rolesQuery, cancellationToken);
 
             // Assert
             result
@@ -76,7 +76,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Permissions
                 .ReturnsAsync(rolesResult);
 
             // Act
-            var result = await _handler.Handle(rolesQuery, cancellationToken);
+            var result = await _handler.HandleAsync(rolesQuery, cancellationToken);
 
             // Assert
             result
@@ -121,7 +121,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Permissions
                 .ReturnsAsync(rolesResult);
 
             // Act
-            var result = await _handler.Handle(rolesQuery, cancellationToken);
+            var result = await _handler.HandleAsync(rolesQuery, cancellationToken);
 
             // Assert
             result

@@ -1,6 +1,4 @@
-﻿using Feijuca.Auth.Models;
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Feijuca.Auth.Domain.Entities
 {

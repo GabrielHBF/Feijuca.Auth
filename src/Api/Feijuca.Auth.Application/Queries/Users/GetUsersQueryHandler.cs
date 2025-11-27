@@ -6,12 +6,13 @@ using MediatR;
 using Feijuca.Auth.Http.Responses;
 using Feijuca.Auth.Providers;
 using Feijuca.Auth.Application.Responses;
+using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.Users
 {
     public class GetUsersQueryHandler(IUserRepository _userRepository, ITenantProvider _tenantService) : IRequestHandler<GetUsersQuery, Result<PagedResult<UserResponse>>>
     {
-        public async Task<Result<PagedResult<UserResponse>>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedResult<UserResponse>>> HandleAsync(GetUsersQuery request, CancellationToken cancellationToken)
         {
             var totalUsers = await _userRepository.GetTotalAsync(cancellationToken);
             var result = await _userRepository.GetAllAsync(request.GetUsersRequest.ToUserFilters(), totalUsers, cancellationToken);

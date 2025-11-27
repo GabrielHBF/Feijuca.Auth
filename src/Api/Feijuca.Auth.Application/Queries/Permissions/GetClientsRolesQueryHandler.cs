@@ -3,6 +3,7 @@ using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
 using Feijuca.Auth.Application.Responses;
+using LiteBus.Queries.Abstractions;
 using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Application.Queries.Permissions
@@ -14,7 +15,7 @@ namespace Feijuca.Auth.Application.Queries.Permissions
         private readonly IClientRepository _clientRepository = clientRepository;
         private readonly IClientRoleRepository _roleRepository = roleRepository;
 
-        public async Task<Result<IEnumerable<ClientRoleResponse>>> Handle(GetClientRolesQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<ClientRoleResponse>>> HandleAsync(GetClientRolesQuery request, CancellationToken cancellationToken)
         {
             var result = await _clientRepository.GetClientsAsync(tenantProvider.Tenant.Name, cancellationToken);
             if (result.IsSuccess)

@@ -31,7 +31,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
                 .ReturnsAsync(Result<bool>.Success(true));
 
             // Act
-            var result = await _handler.Handle(deleteRequest, cancellationToken);
+            var result = await _handler.HandleAsync(deleteRequest, cancellationToken);
 
             // Assert
             result
@@ -56,7 +56,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
                 .ReturnsAsync(errorResult);
 
             // Act
-            var result = await _handler.Handle(deleteRequest, cancellationToken);
+            var result = await _handler.HandleAsync(deleteRequest, cancellationToken);
 
             // Assert
             result

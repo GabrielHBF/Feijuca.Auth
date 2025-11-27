@@ -3,8 +3,10 @@ using Feijuca.Auth.Application.Queries.Users;
 using Feijuca.Auth.Application.Requests.Auth;
 using Feijuca.Auth.Application.Requests.User;
 using Feijuca.Auth.Attributes;
-using Mattioli.Configurations.Models;
 using Feijuca.Auth.Http.Responses;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
+using Mattioli.Configurations.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +16,8 @@ namespace Feijuca.Auth.Api.Controllers;
 
 [Route("api/v1/users")]
 [ApiController]
-public class UsersController(IMediator mediator) : ControllerBase
+public class UsersController(ICommandMediator commandMediator, IQueryMediator queryMediator) : ControllerBase
 {
-    private readonly IMediator _mediator = mediator;
-
     /// <summary>
     /// Retrieves all users existing in the specified Keycloak realm.
     /// </summary>
@@ -40,7 +40,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     [RequiredRole("Feijuca.ApiReader")]
     public async Task<IActionResult> GetUsers([FromQuery] GetUsersRequest getUsersRequest, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetUsersQuery(getUsersRequest), cancellationToken);
+        var result = await queryMediator.QueryAsync(new GetUsersQuery(getUsersRequest), cancellationToken);
 
         if (result.IsSuccess)
         {
@@ -72,7 +72,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> CreateUser([FromHeader] string tenant, [FromBody] AddUserRequest addUserRequest,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new AddUserCommand(tenant, addUserRequest), cancellationToken);
+        var result = await commandMediator.SendAsync(new AddUserCommand(tenant, addUserRequest), cancellationToken);
 
         if (result.IsSuccess)
         {
@@ -100,7 +100,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> UpdateUser([FromQuery] Guid id, [FromBody] AddUserRequest addUserRequest,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new UpdateUserCommand(id, addUserRequest), cancellationToken);
+        var result = await commandMediator.SendAsync(new UpdateUserCommand(id, addUserRequest), cancellationToken);
 
         if (result.IsSuccess)
         {
@@ -129,7 +129,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     [Authorize]
     public async Task<IActionResult> DeleteUser([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new DeleteUserCommand(id), cancellationToken);
+        var result = await commandMediator.SendAsync(new DeleteUserCommand(id), cancellationToken);
 
         if (result.IsSuccess)
         {
@@ -156,7 +156,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     [Authorize]
     public async Task<IActionResult> RevokeUserSessions([FromQuery] Guid id, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new RevokeUserSessionsCommand(id), cancellationToken);
+        var result = await commandMediator.SendAsync(new RevokeUserSessionsCommand(id), cancellationToken);
 
         if (result.IsSuccess)
         {
@@ -183,7 +183,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest logoutUserRequest,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new SignoutCommand(logoutUserRequest.RefreshToken), cancellationToken);
+        var result = await commandMediator.SendAsync(new SignoutCommand(logoutUserRequest.RefreshToken), cancellationToken);
 
         if (result.IsSuccess)
         {
@@ -211,7 +211,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Login([FromHeader] string tenant, [FromBody] LoginUserRequest loginUserRequest,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new LoginCommand(tenant, loginUserRequest), cancellationToken);
+        var result = await commandMediator.SendAsync(new LoginCommand(tenant, loginUserRequest), cancellationToken);
 
         if (result.IsSuccess)
         {
@@ -272,7 +272,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> RefreshToken([FromHeader] string tenant, [FromBody] RefreshTokenRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new RefreshTokenCommand(tenant, request.RefreshToken), cancellationToken);
+        var result = await commandMediator.SendAsync(new RefreshTokenCommand(tenant, request.RefreshToken), cancellationToken);
 
         if (result.IsSuccess)
         {

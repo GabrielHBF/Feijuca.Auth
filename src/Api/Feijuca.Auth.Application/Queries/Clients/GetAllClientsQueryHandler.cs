@@ -1,5 +1,6 @@
 ﻿using Feijuca.Auth.Application.Responses;
 using Feijuca.Auth.Domain.Interfaces;
+using LiteBus.Queries.Abstractions;
 using Feijuca.Auth.Providers;
 using MediatR;
 
@@ -9,7 +10,7 @@ namespace Feijuca.Auth.Application.Queries.Clients
     {
         private readonly IClientRepository _clientRepository = clientRepository;
 
-        public async Task<IEnumerable<ClientResponse>> Handle(GetAllClientsQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ClientResponse>> HandleAsync(GetAllClientsQuery request, CancellationToken cancellationToken)
         {
             var clientsResult = await _clientRepository.GetClientsAsync(tenantProvider.Tenant.Name, cancellationToken);
 

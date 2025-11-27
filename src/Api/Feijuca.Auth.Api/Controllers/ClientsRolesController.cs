@@ -2,6 +2,8 @@
 using Feijuca.Auth.Application.Queries.Permissions;
 using Feijuca.Auth.Application.Requests.Role;
 using Feijuca.Auth.Attributes;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
 using Mattioli.Configurations.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +14,8 @@ namespace Feijuca.Auth.Api.Controllers
     [Route("api/v1/clients-roles")]
     [ApiController]
     [Authorize]
-    public class ClientsRolesController(IMediator mediator) : ControllerBase
+    public class ClientsRolesController(ICommandMediator commandMediator, IQueryMediator queryMediator) : ControllerBase
     {
-        private readonly IMediator _mediator = mediator;
-
         /// <summary>
         /// Retrieves all roles associated with the clients in the specified Keycloak realm.
         /// </summary>
@@ -31,7 +31,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiReader")]
         public async Task<IActionResult> GetClientRoles(CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetClientRolesQuery(), cancellationToken);
+            var result = await queryMediator.QueryAsync(new GetClientRolesQuery(), cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -57,7 +57,7 @@ namespace Feijuca.Auth.Api.Controllers
         [RequiredRole("Feijuca.ApiWriter")]
         public async Task<IActionResult> AddRole([FromBody] AddClientRoleRequest addRoleRequest, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new AddClientRoleCommand([addRoleRequest]), cancellationToken);
+            var result = await commandMediator.SendAsync(new AddClientRoleCommand([addRoleRequest]), cancellationToken);
 
             if (result.IsSuccess)
             {

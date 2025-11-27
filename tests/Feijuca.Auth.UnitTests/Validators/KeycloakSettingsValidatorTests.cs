@@ -1,6 +1,5 @@
 ﻿using AutoFixture;
 using Feijuca.Auth.Application.Validators;
-using Mattioli.Configurations.Models;
 using Feijuca.Auth.Models;
 using FluentAssertions;
 using Feijuca.Auth.Common.Models;

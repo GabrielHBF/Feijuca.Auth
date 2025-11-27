@@ -1,7 +1,7 @@
 ﻿using Feijuca.Auth.Application.Responses;
-using MediatR;
+using LiteBus.Queries.Abstractions;
 
 namespace Feijuca.Auth.Application.Queries.ClientScopes
 {
-    public record GetClientScopesQuery() : IRequest<IEnumerable<ClientScopesResponse>>;
+    public record GetClientScopesQuery() : IQuery<IEnumerable<ClientScopesResponse>>;
 }

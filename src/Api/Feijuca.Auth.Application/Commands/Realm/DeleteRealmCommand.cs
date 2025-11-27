@@ -1,7 +1,7 @@
-﻿using Mattioli.Configurations.Models;
-using MediatR;
+﻿using LiteBus.Commands.Abstractions;
+using Mattioli.Configurations.Models;
 
 namespace Feijuca.Auth.Application.Commands.Realm
 {
-    public record DeleteRealmCommand(string RealmName) : IRequest<Result<bool>>;
+    public record DeleteRealmCommand(string RealmName) : ICommand<Result<bool>>;
 }

@@ -1,5 +1,6 @@
 ﻿using Feijuca.Auth.Application.Commands.Client;
 using Feijuca.Auth.Application.Commands.ClientRole;
+using Feijuca.Auth.Application.Commands.ClientScopeMapper;
 using Feijuca.Auth.Application.Commands.ClientScopeProtocol;
 using Feijuca.Auth.Application.Commands.ClientScopes;
 using Feijuca.Auth.Application.Commands.Config;
@@ -8,6 +9,7 @@ using Feijuca.Auth.Application.Commands.GroupRoles;
 using Feijuca.Auth.Application.Commands.GroupUser;
 using Feijuca.Auth.Application.Commands.Realm;
 using Feijuca.Auth.Application.Commands.User;
+using Feijuca.Auth.Application.Mappers;
 using Feijuca.Auth.Application.Queries.Clients;
 using Feijuca.Auth.Application.Queries.ClientScopes;
 using Feijuca.Auth.Application.Queries.Groups;
@@ -20,20 +22,18 @@ using Feijuca.Auth.Application.Requests.Realm;
 using Feijuca.Auth.Application.Requests.Role;
 using Feijuca.Auth.Application.Requests.User;
 using Feijuca.Auth.Common;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
 using Mattioli.Configurations.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Feijuca.Auth.Application.Mappers;
-using Feijuca.Auth.Application.Commands.ClientScopeMapper;
 
 namespace Feijuca.Auth.Api.Controllers
 {
     [Route("api/v1/configs")]
     [ApiController]
-    public class ConfigsController(IMediator mediator) : ControllerBase
+    public class ConfigsController(ICommandMediator commandMediator, IQueryMediator queryMediator) : ControllerBase
     {
-        private readonly IMediator _mediator = mediator;
-
         /// <summary>
         /// Use this endpoint when you have a realm and wish configure keycloak feijuca inside the realm.
         /// </summary>
@@ -74,7 +74,7 @@ namespace Feijuca.Auth.Api.Controllers
         {
             try
             {
-                await _mediator.Send(new AddOrUpdateConfigCommand(addKeycloakSettings.ToMapper()), cancellationToken);
+                await commandMediator.SendAsync(new AddOrUpdateConfigCommand(addKeycloakSettings.ToMapper()), cancellationToken);
 
                 if (includeRealm)
                 {
@@ -96,7 +96,7 @@ namespace Feijuca.Auth.Api.Controllers
             }
             catch
             {
-                await _mediator.Send(new DeleteRealmCommand(addKeycloakSettings.Realm.Name!), cancellationToken);
+                await commandMediator.SendAsync(new DeleteRealmCommand(addKeycloakSettings.Realm.Name!), cancellationToken);
                 throw;
             }
 
@@ -123,16 +123,16 @@ namespace Feijuca.Auth.Api.Controllers
             };
 
             var result = await ProcessActionsAsync(
-                async () => await _mediator.Send(new AddClientCommand(clientBody), cancellationToken),
-                async () => await _mediator.Send(new AddClientScopesCommand(addClientScopes), cancellationToken));
+                async () => await commandMediator.SendAsync(new AddClientCommand(clientBody), cancellationToken),
+                async () => await commandMediator.SendAsync(new AddClientScopesCommand(addClientScopes), cancellationToken));
 
             if (result.IsFailure)
             {
                 return Result.Failure(result.Error);
             }
 
-            var clientScopes = await _mediator.Send(new GetClientScopesQuery(), cancellationToken);
-            var clients = await _mediator.Send(new GetAllClientsQuery(), cancellationToken);
+            var clientScopes = await queryMediator.QueryAsync(new GetClientScopesQuery(), cancellationToken);
+            var clients = await queryMediator.QueryAsync(new GetAllClientsQuery(), cancellationToken);
             var clientScope = clientScopes.FirstOrDefault(x => x.Name == Constants.FeijucaApiClientName)!;
             var feijucaClient = clients.FirstOrDefault(x => x.ClientId == Constants.FeijucaApiClientName)!;
 
@@ -146,19 +146,19 @@ namespace Feijuca.Auth.Api.Controllers
             };
 
             var result2 = await ProcessActionsAsync(
-                async () => await _mediator.Send(new AddClientScopeToClientCommand(addClientScopeToClientRequest), cancellationToken),
-                async () => await _mediator.Send(new AddGroupCommand(groupRequest), cancellationToken),
-                async () => await _mediator.Send(new AddClientRoleCommand(addRolesRequest), cancellationToken),
-                async () => await _mediator.Send(new AddClientScopeAudienceProtocolMapperCommand(clientScope.Id), cancellationToken),
-                async () => await _mediator.Send(new AddClientScopeMapperCommand(clientScopes.FirstOrDefault(x => x.Name == "profile")!.Id, "tenant", "tenant"), cancellationToken));
+                async () => await commandMediator.SendAsync(new AddClientScopeToClientCommand(addClientScopeToClientRequest), cancellationToken),
+                async () => await commandMediator.SendAsync(new AddGroupCommand(groupRequest), cancellationToken),
+                async () => await commandMediator.SendAsync(new AddClientRoleCommand(addRolesRequest), cancellationToken),
+                async () => await commandMediator.SendAsync(new AddClientScopeAudienceProtocolMapperCommand(clientScope.Id), cancellationToken),
+                async () => await commandMediator.SendAsync(new AddClientScopeMapperCommand(clientScopes.FirstOrDefault(x => x.Name == "profile")!.Id, "tenant", "tenant"), cancellationToken));
 
             if (result2.IsFailure)
             {
                 return Result.Failure(result2.Error);
             }
 
-            var clientRoles = await _mediator.Send(new GetClientRolesQuery(), cancellationToken);
-            var groups = await _mediator.Send(new GetAllGroupsQuery(false), cancellationToken);
+            var clientRoles = await queryMediator.QueryAsync(new GetClientRolesQuery(), cancellationToken);
+            var groups = await queryMediator.QueryAsync(new GetAllGroupsQuery(false), cancellationToken);
 
             var feijucaGroup = groups.Data.FirstOrDefault(x => x.Name == Constants.FeijucaGroupName);
             var feijucaRoles = clientRoles.Data.FirstOrDefault(x => x.Id == feijucaClient.Id)!.Roles;
@@ -167,7 +167,7 @@ namespace Feijuca.Auth.Api.Controllers
             {
                 var roleId = feijucaRoles.First(x => x.Name == roleName).Id;
                 var clientRole = new AddClientRoleToGroupRequest(feijucaClient.Id, roleId);
-                await _mediator.Send(new AddClientRoleToGroupCommand(feijucaGroup!.Id.ToString(), clientRole), cancellationToken);
+                await commandMediator.SendAsync(new AddClientRoleToGroupCommand(feijucaGroup!.Id.ToString(), clientRole), cancellationToken);
             }
 
             var addUserRequest = new AddUserRequest(
@@ -178,9 +178,9 @@ namespace Feijuca.Auth.Api.Controllers
                 "Admin",
                 []);
 
-            var userId = await _mediator.Send(new AddUserCommand(keyCloakSettings.Realm.Name ?? "No Tenant", addUserRequest), cancellationToken);
+            var userId = await commandMediator.SendAsync(new AddUserCommand(keyCloakSettings.Realm.Name ?? "No Tenant", addUserRequest), cancellationToken);
 
-            await _mediator.Send(new AddUserToGroupCommand(userId.Data, Guid.Parse(feijucaGroup!.Id)), cancellationToken);
+            await commandMediator.SendAsync(new AddUserToGroupCommand(userId.Data, Guid.Parse(feijucaGroup!.Id)), cancellationToken);
 
             return Result.Success();
         }

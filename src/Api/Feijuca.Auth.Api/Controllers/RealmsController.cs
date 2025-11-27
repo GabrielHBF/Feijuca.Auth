@@ -2,6 +2,8 @@
 using Feijuca.Auth.Application.Queries.Realm;
 using Feijuca.Auth.Application.Requests.Realm;
 using Feijuca.Auth.Attributes;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
