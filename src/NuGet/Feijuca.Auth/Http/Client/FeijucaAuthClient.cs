@@ -48,16 +48,16 @@ namespace Feijuca.Auth.Http.Client
             return Result<PagedResult<UserResponse>>.Success(result);
         }
 
-        public async Task<Result<PagedResult<GroupResponse>>> GetGroupsAsync(string jwtToken, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<GroupResponse>>> GetGroupsAsync(string jwtToken, CancellationToken cancellationToken)
         {
-            var result = await GetAsync<PagedResult<GroupResponse>>("groups", jwtToken, cancellationToken);
+            var result = await GetAsync<IEnumerable<GroupResponse>>("groups", jwtToken, cancellationToken);
 
-            if (result.TotalResults == 0)
+            if (!result.Any())
             {
-                return Result<PagedResult<GroupResponse>>.Failure(FeijucaErrors.GetGroupErrors);
+                return Result<IEnumerable<GroupResponse>>.Failure(FeijucaErrors.GetGroupErrors);
             }
 
-            return Result<PagedResult<GroupResponse>>.Success(result);
+            return Result<IEnumerable<GroupResponse>>.Success(result);
         }
     }
 }
