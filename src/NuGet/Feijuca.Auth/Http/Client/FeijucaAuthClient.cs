@@ -20,7 +20,6 @@ namespace Feijuca.Auth.Http.Client
             return Result<TokenDetailsResponse>.Success(result);
         }
 
-
         public async Task<Result<UserResponse>> GetUserAsync(string userame, string jwtToken, CancellationToken cancellationToken)
         {
             var url = $"users?Usernames={userame}";
@@ -47,6 +46,18 @@ namespace Feijuca.Auth.Http.Client
             }
 
             return Result<PagedResult<UserResponse>>.Success(result);
+        }
+
+        public async Task<Result<PagedResult<GroupResponse>>> GetGroupsAsync(string jwtToken, CancellationToken cancellationToken)
+        {
+            var result = await GetAsync<PagedResult<GroupResponse>>("groups", jwtToken, cancellationToken);
+
+            if (result.TotalResults == 0)
+            {
+                return Result<PagedResult<GroupResponse>>.Failure(FeijucaErrors.GetGroupErrors);
+            }
+
+            return Result<PagedResult<GroupResponse>>.Success(result);
         }
     }
 }
