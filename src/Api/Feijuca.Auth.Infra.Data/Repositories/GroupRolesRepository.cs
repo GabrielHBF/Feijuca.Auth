@@ -67,10 +67,11 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             {
                 var groupRolesContent = await response.Content.ReadAsStringAsync(cancellationToken);
                 var jsonObject = JObject.Parse(groupRolesContent);
-                var clientMappings = jsonObject["clientMappings"]!
-                    .Children<JProperty>()
-                    .Select(x => x.Value.ToObject<ClientMapping>())
-                    .ToList();
+                var clientMappings = jsonObject["clientMappings"] is null ? [] : 
+                    jsonObject["clientMappings"]?
+                        .Children<JProperty>()
+                        .Select(x => x.Value.ToObject<ClientMapping>()!)
+                        .ToList();
 
                 return Result<IEnumerable<ClientMapping>>.Success(clientMappings!);
             }
