@@ -59,5 +59,17 @@ namespace Feijuca.Auth.Http.Client
 
             return Result<IEnumerable<GroupResponse>>.Success(result);
         }
+
+        public async Task<Result<IEnumerable<RealmResponse>>> GetRealmsAsync(string jwtToken, CancellationToken cancellationToken)
+        {
+            var result = await GetAsync<IEnumerable<RealmResponse>>("realms", jwtToken, cancellationToken);
+
+            if (!result.Any())
+            {
+                return Result<IEnumerable<RealmResponse>>.Failure(FeijucaErrors.GetGroupErrors);
+            }
+
+            return Result<IEnumerable<RealmResponse>>.Success(result);
+        }
     }
 }

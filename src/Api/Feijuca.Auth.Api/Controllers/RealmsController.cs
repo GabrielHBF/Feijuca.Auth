@@ -16,6 +16,24 @@ namespace Feijuca.Auth.Api.Controllers
         private readonly IMediator _mediator = mediator;
 
         /// <summary>
+        /// Retrieves all registred realms.
+        /// </summary>
+        /// <returns>
+        /// A 200 Ok status code containing all realms registred in Keycloak
+        /// </returns>
+        /// <param name="cancellationToken">A <see cref="T:System.Threading.CancellationToken"/> that can be used to signal cancellation for the operation.</param>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [RequiredRole("Feijuca.ApiReader")]
+        public async Task<IActionResult> GetRealms(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetRealmsQuery(), cancellationToken);
+
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Retrieves all configs related to a realm.
         /// </summary>
         /// <returns>

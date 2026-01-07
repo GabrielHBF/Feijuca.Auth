@@ -10,6 +10,22 @@ namespace Feijuca.Auth.Infra.Data.Repositories
     {
         private readonly IAuthRepository _authRepository = authRepository;
 
+        public async Task<IEnumerable<RealmEntity>> GetAllAsync(CancellationToken cancellationToken)
+        {
+            var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
+            using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
+
+            var url = httpClient.BaseAddress
+                   .AppendPathSegment("admin")
+                   .AppendPathSegment("realms");
+
+            using var response = await httpClient.GetAsync(url, cancellationToken);
+            var keycloakRealmContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            var realms = JsonConvert.DeserializeObject<IEnumerable<RealmEntity>>(keycloakRealmContent)!;
+
+            return realms ?? [];
+        }
+
         public async Task<bool> CreateRealmAsync(RealmEntity realm, CancellationToken cancellationToken)
         {
             var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
@@ -53,7 +69,6 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             return response.IsSuccessStatusCode;
         }
 
-
         public async Task<string> GetRealmConfigAsync(string name, CancellationToken cancellationToken)
         {
             var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
@@ -76,6 +91,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
 
             return "";
         }
+
 
         public async Task<bool> UpdateRealmUnmanagedAttributePolicyAsync(string realmName, CancellationToken cancellationToken)
         {

@@ -10,4 +10,5 @@ public interface IFeijucaAuthClient
     Task<Result<PagedResult<UserResponse>>> GetUsersAsync(int maxUsers, string jwtToken, CancellationToken cancellationToken);
     Task<Result<UserResponse>> GetUserAsync(string userame, string jwtToken, CancellationToken cancellationToken);
     Task<Result<IEnumerable<GroupResponse>>> GetGroupsAsync(string jwtToken, CancellationToken cancellationToken);
+    Task<Result<IEnumerable<RealmResponse>>> GetRealmsAsync(string jwtToken, CancellationToken cancellationToken);
 }
