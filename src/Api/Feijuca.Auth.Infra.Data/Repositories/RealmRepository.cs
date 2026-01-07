@@ -92,7 +92,6 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             return "";
         }
 
-
         public async Task<bool> UpdateRealmUnmanagedAttributePolicyAsync(string realmName, CancellationToken cancellationToken)
         {
             var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
