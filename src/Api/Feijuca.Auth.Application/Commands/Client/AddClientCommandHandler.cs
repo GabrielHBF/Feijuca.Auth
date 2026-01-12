@@ -3,15 +3,16 @@ using Feijuca.Auth.Common.Errors;
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
+using Feijuca.Auth.Services;
 
 namespace Feijuca.Auth.Application.Commands.Client
 {
-    public class AddClientCommandHandler(IClientRepository clientRepository) : IRequestHandler<AddClientCommand, Result<bool>>
+    public class AddClientCommandHandler(IClientRepository clientRepository, ITenantService tenantService) : IRequestHandler<AddClientCommand, Result<bool>>
     {
         public async Task<Result<bool>> Handle(AddClientCommand request, CancellationToken cancellationToken)
         {
             var client = request.AddClientRequest.ToClientEntity();
-            var result = await clientRepository.CreateClientAsync(client, cancellationToken);
+            var result = await clientRepository.CreateClientAsync(client, tenantService.Tenant.Name, cancellationToken);
 
             if (result)
             {

@@ -7,6 +7,6 @@ namespace Feijuca.Auth.Domain.Interfaces
     {
         Task<Result<IEnumerable<ClientEntity>>> GetClientsAsync(CancellationToken cancellationToken);
         Task<Result<ClientEntity>> GetClientAsync(string clientId, CancellationToken cancellationToken);
-        Task<bool> CreateClientAsync(ClientEntity client, CancellationToken cancellationToken);
+        Task<bool> CreateClientAsync(ClientEntity client, string tenantName, CancellationToken cancellationToken);
     }
 }

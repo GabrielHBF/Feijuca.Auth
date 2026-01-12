@@ -34,27 +34,27 @@ namespace Feijuca.Auth.Api.Controllers
         }
 
         /// <summary>
-        /// Retrieves all configs related to a realm.
+        /// This endpoint has the purpose to replicate clients/client-scopes to another existing tenant.
         /// </summary>
         /// <returns>
         /// A 201 Created status code containing a realm config if the request is successful;
         /// otherwise, a 400 Bad Request status code with an error message.
         /// </returns>
         /// <param name="cancellationToken">A <see cref="T:System.Threading.CancellationToken"/> that can be used to signal cancellation for the operation.</param>
-        /// <param name="name">The name of the realm.</param>
+        /// <param name="replicateRealmRequest">Use this parameter to handle what are the things that you should replicate. Inform the clients name, scope names and so on...</param>
         [HttpGet]
-        [Route("export/{name}", Name = nameof(ExportRealm))]
+        [Route("replicate", Name = nameof(ReplicateRealm))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [RequiredRole("Feijuca.ApiReader")]
-        public async Task<IActionResult> ExportRealm([FromRoute] string name, CancellationToken cancellationToken)
+        [RequiredRole("Feijuca.ApiWriter")]
+        public async Task<IActionResult> ReplicateRealm([FromBody] ReplicateRealmRequest replicateRealmRequest, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetRealmConfigurationQuery(name), cancellationToken);
+            var result = await _mediator.Send(new ReplicateRealmCommand(replicateRealmRequest), cancellationToken);
 
-            if (!string.IsNullOrEmpty(name))
+            if (result)
             {
-                return Created($"/export/{name}", result);
+                return Created($"/replicate", result);
             }
 
             return BadRequest();

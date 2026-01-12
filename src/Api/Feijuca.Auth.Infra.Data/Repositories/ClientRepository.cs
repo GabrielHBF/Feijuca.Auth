@@ -13,7 +13,7 @@ public class ClientRepository(IHttpClientFactory httpClientFactory,
     IAuthRepository _authRepository,
     ITenantService _tenantService) : BaseRepository(httpClientFactory), IClientRepository
 {
-    public async Task<bool> CreateClientAsync(ClientEntity client, CancellationToken cancellationToken)
+    public async Task<bool> CreateClientAsync(ClientEntity client, string tenantName, CancellationToken cancellationToken)
     {
         var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
 
@@ -21,7 +21,7 @@ public class ClientRepository(IHttpClientFactory httpClientFactory,
         var url = httpClient.BaseAddress
                .AppendPathSegment("admin")
                .AppendPathSegment("realms")
-               .AppendPathSegment(_tenantService.Tenant.Name)
+               .AppendPathSegment(tenantName)
                .AppendPathSegment("clients");
 
         var clientConfig = new

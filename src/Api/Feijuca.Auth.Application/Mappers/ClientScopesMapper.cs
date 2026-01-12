@@ -6,9 +6,13 @@ namespace Feijuca.Auth.Application.Mappers
 {
     public static class ClientScopesMapper
     {
-        public static ClientScopesEntity ToClientScopesEntity(this AddClientScopesRequest addClientScopesRequest)
+        public static ClientScopeEntity ToClientScopesEntity(this AddClientScopesRequest addClientScopesRequest)
         {
-            return new ClientScopesEntity(addClientScopesRequest.Name, addClientScopesRequest.Description, addClientScopesRequest.IncludeInTokenScope);
+            return new ClientScopeEntity
+            {
+                Name = addClientScopesRequest.Name,
+                Description = addClientScopesRequest.Description
+            };
         }
 
         public static IEnumerable<ClientScopesResponse> ToClientScopesResponse(this IEnumerable<ClientScopeEntity> clientScopeEntities)

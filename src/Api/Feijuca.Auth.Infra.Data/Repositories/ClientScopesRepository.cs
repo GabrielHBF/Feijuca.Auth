@@ -84,8 +84,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             return response.IsSuccessStatusCode;
         }
 
-
-        public async Task<bool> AddClientScopesAsync(ClientScopesEntity clientScopesEntity, CancellationToken cancellationToken)
+        public async Task<bool> AddClientScopesAsync(ClientScopeEntity clientScopesEntity, string tenant, CancellationToken cancellationToken)
         {
             var tokenDetails = await authRepository.GetAccessTokenAsync(cancellationToken);
             using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
@@ -93,7 +92,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             var url = httpClient.BaseAddress
                 .AppendPathSegment("admin")
                 .AppendPathSegment("realms")
-                .AppendPathSegment(tenantService.Tenant.Name)
+                .AppendPathSegment(tenant)
                 .AppendPathSegment("client-scopes");
 
             var clientScope = new
@@ -104,7 +103,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
                 attributes = new Dictionary<string, bool>
                 {
                     { "display.on.consent.screen", true },
-                    { "include.in.token.scope", clientScopesEntity.IncludeInTokenScope }
+                    { "include.in.token.scope", true }
                 },
                 defaultScope = true
             };
