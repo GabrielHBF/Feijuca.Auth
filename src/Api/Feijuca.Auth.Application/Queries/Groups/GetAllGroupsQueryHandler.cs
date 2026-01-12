@@ -4,16 +4,17 @@ using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
 using Feijuca.Auth.Application.Responses;
+using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Application.Queries.Groups
 {
-    public class GetAllGroupsQueryHandler(IGroupRepository groupRepository) : IRequestHandler<GetAllGroupsQuery, Result<IEnumerable<GroupResponse>>>
+    public class GetAllGroupsQueryHandler(IGroupRepository groupRepository, ITenantProvider tenantProvider) : IRequestHandler<GetAllGroupsQuery, Result<IEnumerable<GroupResponse>>>
     {
         private readonly IGroupRepository _groupRepository = groupRepository;
 
         public async Task<Result<IEnumerable<GroupResponse>>> Handle(GetAllGroupsQuery request, CancellationToken cancellationToken)
         {
-            var result = await _groupRepository.GetAllAsync(cancellationToken);
+            var result = await _groupRepository.GetAllAsync(tenantProvider.Tenant.Name, cancellationToken);
 
             if (result.IsSuccess)
             {

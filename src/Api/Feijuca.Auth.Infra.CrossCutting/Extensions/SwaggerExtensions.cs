@@ -1,50 +1,51 @@
 ﻿using Feijuca.Auth.Common.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace Feijuca.Auth.Infra.CrossCutting.Extensions
 {
     public static class SwaggerExtensions
     {
-        public static IServiceCollection AddSwagger(this IServiceCollection services, KeycloakSettings? keycloakSettings)
+        public static IServiceCollection AddSwagger(
+            this IServiceCollection services,
+            KeycloakSettings? keycloakSettings)
         {
-            var realmName = keycloakSettings?.Realms?.FirstOrDefault(x => x.DefaultSwaggerTokenGeneration)?.Name ?? "";
-
-            if (keycloakSettings is not null && !string.IsNullOrEmpty(realmName))
+            services.AddSwaggerGen(options =>
             {
-                services.AddSwaggerGen(c =>
+                var realmName = keycloakSettings?
+                    .Realms?
+                    .FirstOrDefault(x => x.DefaultSwaggerTokenGeneration)?
+                    .Name;
+
+                options.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Feijuca.Auth.Api", Version = "v1" });
-
-                    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                    {
-                        Description = "Inform a token JWT valid following format: Bearer {token}",
-                        Name = "Authorization",
-                        In = ParameterLocation.Header,
-                        Type = SecuritySchemeType.ApiKey,
-                        Scheme = "Bearer"
-                    });
-
-                    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                    {
-                        {
-                            new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "Bearer"
-                                }
-                            },
-                            Array.Empty<string>()
-                        }
-                    });
-
-                    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Feijuca.Auth.Api.xml"));
+                    Title = "Feijuca.Auth.Api",
+                    Version = "v1"
                 });
-            }
 
-            services.AddSwaggerGen();
+
+                if (!string.IsNullOrEmpty(realmName))
+                {
+                    options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+                    {
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        BearerFormat = "JWT",
+                        Description = "JWT Authorization header using the Bearer scheme."
+                    });
+
+                    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+                    {
+                        [new OpenApiSecuritySchemeReference("bearer", document)] = []
+                    });
+                }
+
+                options.IncludeXmlComments(
+                    Path.Combine(AppContext.BaseDirectory, "Feijuca.Auth.Api.xml"),
+                    includeControllerXmlComments: true
+                );
+            });
+
             return services;
         }
     }

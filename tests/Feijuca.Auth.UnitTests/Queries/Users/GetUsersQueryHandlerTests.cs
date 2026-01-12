@@ -5,7 +5,7 @@ using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Filters;
 using Feijuca.Auth.Domain.Interfaces;
-using Feijuca.Auth.Services;
+using Feijuca.Auth.Providers;
 using FluentAssertions;
 using Moq;
 
@@ -15,7 +15,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Users
     {
         private readonly IFixture _fixture = new Fixture();
         private readonly Mock<IUserRepository> _userRepositoryMock = new();
-        private readonly Mock<ITenantService> _tenantServiceMock = new();
+        private readonly Mock<ITenantProvider> _tenantServiceMock = new();
         private readonly GetUsersQueryHandler _handler;
 
         public GetUsersQueryHandlerTests()

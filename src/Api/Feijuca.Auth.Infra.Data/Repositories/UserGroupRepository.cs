@@ -1,13 +1,13 @@
 ﻿using Feijuca.Auth.Common.Errors;
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
-using Feijuca.Auth.Services;
+using Feijuca.Auth.Providers;
 
 using Flurl;
 
 namespace Feijuca.Auth.Infra.Data.Repositories
 {
-    public class UserGroupRepository(IHttpClientFactory httpClientFactory, IAuthRepository _authRepository, ITenantService _tenantService) : BaseRepository(httpClientFactory), IGroupUsersRepository
+    public class UserGroupRepository(IHttpClientFactory httpClientFactory, IAuthRepository _authRepository, ITenantProvider _tenantService) : BaseRepository(httpClientFactory), IGroupUsersRepository
     {
         public async Task<Result<bool>> AddUserToGroupAsync(Guid userId, Guid groupId, CancellationToken cancellationToken)
         {

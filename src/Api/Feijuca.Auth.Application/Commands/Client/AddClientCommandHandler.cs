@@ -3,11 +3,11 @@ using Feijuca.Auth.Common.Errors;
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
-using Feijuca.Auth.Services;
+using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Application.Commands.Client
 {
-    public class AddClientCommandHandler(IClientRepository clientRepository, ITenantService tenantService) : IRequestHandler<AddClientCommand, Result<bool>>
+    public class AddClientCommandHandler(IClientRepository clientRepository, ITenantProvider tenantService) : IRequestHandler<AddClientCommand, Result<bool>>
     {
         public async Task<Result<bool>> Handle(AddClientCommand request, CancellationToken cancellationToken)
         {

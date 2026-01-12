@@ -3,12 +3,12 @@ using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using Feijuca.Auth.Http.Responses;
 using Feijuca.Auth.Models;
-using Feijuca.Auth.Services;
+using Feijuca.Auth.Providers;
 using MediatR;
 
 namespace Feijuca.Auth.Application.Commands.User
 {
-    public class LoginCommandHandler(IUserRepository userRepository, ITenantService tenantService) : IRequestHandler<LoginCommand, Result<TokenDetailsResponse>>
+    public class LoginCommandHandler(IUserRepository userRepository, ITenantProvider tenantService) : IRequestHandler<LoginCommand, Result<TokenDetailsResponse>>
     {
         public async Task<Result<TokenDetailsResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {

@@ -21,7 +21,12 @@ namespace Feijuca.Auth.Application.Mappers
 
             foreach (var item in clientScopeEntities)
             {
-                list.Add(new ClientScopesResponse(item.Id, item.Name, item.Description, item.Protocol, item.Attributes, item.ProtocolMappers.ToProtocolMapperResponse()));
+                list.Add(new ClientScopesResponse(item.Id ?? "", 
+                    item.Name ?? "", 
+                    item.Description ?? "", 
+                    item.Protocol ?? "", 
+                    item.Attributes ?? [], 
+                    item.ProtocolMappers?.ToProtocolMapperResponse() ?? []));
             }
 
             return list;

@@ -3,22 +3,22 @@ using Mattioli.Configurations.Models;
 using Feijuca.Auth.Application.Mappers;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
-using Feijuca.Auth.Services;
+using Feijuca.Auth.Providers;
 using Feijuca.Auth.Application.Responses;
 
 namespace Feijuca.Auth.Application.Queries.GroupUser
 {
     public class GetUsersGroupQueryHandler(IGroupRepository groupRepository,
         IUserRepository userRepository,
-        ITenantService tenantService) : IRequestHandler<GetUsersGroupQuery, Result<PagedResult<UserGroupResponse>>>
+        ITenantProvider tenantService) : IRequestHandler<GetUsersGroupQuery, Result<PagedResult<UserGroupResponse>>>
     {
         private readonly IGroupRepository _groupRepository = groupRepository;
         private readonly IUserRepository _userRepository = userRepository;
-        private readonly ITenantService _tenantService = tenantService;
+        private readonly ITenantProvider _tenantProvider = tenantService;
 
         public async Task<Result<PagedResult<UserGroupResponse>>> Handle(GetUsersGroupQuery request, CancellationToken cancellationToken)
         {
-            var allGroupsResult = await _groupRepository.GetAllAsync(cancellationToken);
+            var allGroupsResult = await _groupRepository.GetAllAsync(_tenantProvider.Tenant.Name, cancellationToken);
 
             if (allGroupsResult.IsSuccess)
             {
@@ -41,7 +41,7 @@ namespace Feijuca.Auth.Application.Queries.GroupUser
                             .Where(x => request.GetUsersGroupRequest.Usernames.Any(filter => x.Username.Contains(filter, StringComparison.OrdinalIgnoreCase)));
                     }
 
-                    var usersInGroup = new UserGroupResponse(groupSearched.ToResponse(), filteredUsers.ToUsersResponse(_tenantService.Tenant.Name));
+                    var usersInGroup = new UserGroupResponse(groupSearched.ToResponse(), filteredUsers.ToUsersResponse(_tenantProvider.Tenant.Name));
 
                     var result = usersInGroup.ToResponse(request.GetUsersGroupRequest.PageFilter, filteredUsers.Count());
 

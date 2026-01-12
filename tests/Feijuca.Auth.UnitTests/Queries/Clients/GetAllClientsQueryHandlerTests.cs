@@ -6,6 +6,7 @@ using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Api.UnitTests.Queries.Clients
 {
@@ -13,11 +14,12 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Clients
     {
         private readonly IFixture _fixture = new Fixture();
         private readonly Mock<IClientRepository> _clientRepositoryMock = new();
+        private readonly Mock<ITenantProvider> _tenantProviderMock = new();
         private readonly GetAllClientsQueryHandler _handler;
 
         public GetAllClientsQueryHandlerTests()
         {
-            _handler = new GetAllClientsQueryHandler(_clientRepositoryMock.Object);
+            _handler = new GetAllClientsQueryHandler(_clientRepositoryMock.Object, _tenantProviderMock.Object);
         }
 
         [Fact]
@@ -30,7 +32,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Clients
             var clientsResult = Result<IEnumerable<ClientEntity>>.Success(clients);
 
             _clientRepositoryMock
-                .Setup(repo => repo.GetClientsAsync(It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.GetClientsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(clientsResult);
 
             // Act
@@ -41,7 +43,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Clients
                 .Should()
                 .NotBeEmpty();
 
-            _clientRepositoryMock.Verify(repo => repo.GetClientsAsync(It.IsAny<CancellationToken>()), Times.Once());
+            _clientRepositoryMock.Verify(repo => repo.GetClientsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once());
             _clientRepositoryMock.VerifyNoOtherCalls();
         }
 
@@ -54,7 +56,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Clients
             var clientsResult = Result<IEnumerable<ClientEntity>>.Failure(ClientErrors.GetClientsErrors);
 
             _clientRepositoryMock
-                .Setup(repo => repo.GetClientsAsync(It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.GetClientsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(clientsResult);
 
             // Act
@@ -65,7 +67,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Clients
                 .Should()
                 .BeEmpty();
 
-            _clientRepositoryMock.Verify(repo => repo.GetClientsAsync(It.IsAny<CancellationToken>()), Times.Once());
+            _clientRepositoryMock.Verify(repo => repo.GetClientsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once());
             _clientRepositoryMock.VerifyNoOtherCalls();
         }
     }

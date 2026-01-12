@@ -1,11 +1,9 @@
+using Feijuca.Auth.Common.Models;
 using Feijuca.Auth.Extensions;
 using Feijuca.Auth.Infra.CrossCutting.Extensions;
 using Feijuca.Auth.Infra.CrossCutting.Middlewares;
 using Mattioli.Configurations.Extensions.Handlers;
-using Mattioli.Configurations.Transformers;
 using Scalar.AspNetCore;
-using Mattioli.Configurations.Extensions.Telemetry;
-using Feijuca.Auth.Common.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var enviroment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -24,7 +22,7 @@ builder.Services
     .AddRepositories()
     .AddValidators()
     .AddServices()
-    .AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); })
+    .AddOpenApi("v1")
     .AddMongo(applicationSettings.MongoSettings)
     .AddApiAuthentication(out KeycloakSettings keycloakSettings)
     .AddHealthCheckers(keycloakSettings)

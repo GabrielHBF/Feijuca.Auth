@@ -2,10 +2,14 @@
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
+using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Application.Commands.GroupRoles;
 
-public class RemoveRoleFromGroupCommandHandler(IGroupRepository groupRepository, IGroupRolesRepository roleGroupRepository, IClientRoleRepository roleRepository) : IRequestHandler<RemoveRoleFromGroupCommand, Result<bool>>
+public class RemoveRoleFromGroupCommandHandler(IGroupRepository groupRepository, 
+    IGroupRolesRepository roleGroupRepository, 
+    IClientRoleRepository roleRepository,
+    ITenantProvider tenantProvider) : IRequestHandler<RemoveRoleFromGroupCommand, Result<bool>>
 {
     private readonly IGroupRepository _groupRepository = groupRepository;
     private readonly IGroupRolesRepository _roleGroupRepository = roleGroupRepository;
@@ -13,10 +17,10 @@ public class RemoveRoleFromGroupCommandHandler(IGroupRepository groupRepository,
 
     public async Task<Result<bool>> Handle(RemoveRoleFromGroupCommand command, CancellationToken cancellationToken)
     {
-        var groupsResult = await _groupRepository.GetAllAsync(cancellationToken);
+        var groupsResult = await _groupRepository.GetAllAsync(tenantProvider.Tenant.Name, cancellationToken);
         if (groupsResult.IsSuccess && groupsResult.Data.Any(x => x.Id == command.GroupId))
         {
-            var rolesResult = await _roleRepository.GetRolesForClientAsync(command.RemoveRoleFromGroupRequest.ClientId, cancellationToken);
+            var rolesResult = await _roleRepository.GetRolesForClientAsync(command.RemoveRoleFromGroupRequest.ClientId, tenantProvider.Tenant.Name, cancellationToken);
             var existingRule = rolesResult.Data.FirstOrDefault(x => x.Id == command.RemoveRoleFromGroupRequest.RoleId);
             if (rolesResult.IsSuccess && existingRule != null)
             {

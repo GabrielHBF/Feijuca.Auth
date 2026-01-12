@@ -1,7 +1,7 @@
 ﻿using Feijuca.Auth.Common;
 using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
-using Feijuca.Auth.Services;
+using Feijuca.Auth.Providers;
 using Flurl;
 using Newtonsoft.Json;
 using System.Net.Http.Json;
@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Feijuca.Auth.Infra.Data.Repositories
 {
-    public class ClientScopesRepository(IHttpClientFactory httpClientFactory, IAuthRepository authRepository, ITenantService tenantService)
+    public class ClientScopesRepository(IHttpClientFactory httpClientFactory, IAuthRepository authRepository, ITenantProvider tenantService)
         : BaseRepository(httpClientFactory), IClientScopesRepository
     {
         public async Task<bool> AddAudienceMapperAsync(string clientScopeId, CancellationToken cancellationToken)
@@ -158,18 +158,26 @@ namespace Feijuca.Auth.Infra.Data.Repositories
                 .AppendPathSegment("client-scopes");
 
             using var response = await httpClient.GetAsync(url, cancellationToken);
-            var scopesList = new List<ClientScopeEntity>();
 
-            if (response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
+                return [];
+
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            var clientScopes = JsonConvert.DeserializeObject<IEnumerable<ClientScopeEntity>>(responseBody)
+                              ?? [];
+
+            var defaultClientScopes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-                var clientScopes = JsonConvert.DeserializeObject<IEnumerable<ClientScopeEntity>>(responseBody);
+                "profile",
+                "email",
+                "roles",
+                "web-origins",
+                "acr",
+                "offline_access",
+                "microprofile-jwt"
+            };
 
-                return clientScopes!;
-            }
-
-            return scopesList;
-
+            return clientScopes.Where(scope => !defaultClientScopes.Contains(scope?.Name ?? ""));
         }
     }
 }

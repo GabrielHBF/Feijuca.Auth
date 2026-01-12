@@ -6,6 +6,7 @@ using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Api.UnitTests.Queries.Groups
 {
@@ -13,11 +14,12 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Groups
     {
         private readonly IFixture _fixture = new Fixture();
         private readonly Mock<IGroupRepository> _groupRepositoryMock = new();
+        private readonly Mock<ITenantProvider> _tenantProviderMock = new();
         private readonly GetAllGroupsQueryHandler _handler;
 
         public GetAllGroupsQueryHandlerTests()
         {
-            _handler = new GetAllGroupsQueryHandler(_groupRepositoryMock.Object);
+            _handler = new GetAllGroupsQueryHandler(_groupRepositoryMock.Object, _tenantProviderMock.Object);
         }
 
         [Fact]
@@ -30,7 +32,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Groups
             var groupsResult =  Result<IEnumerable<Group>>.Success(groups);
 
             _groupRepositoryMock
-                .Setup(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.GetAllAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(groupsResult);
 
             // Act
@@ -42,7 +44,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Groups
                 .Should()
                 .BeTrue();
 
-            _groupRepositoryMock.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once());
+            _groupRepositoryMock.Verify(repo => repo.GetAllAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once());
             _groupRepositoryMock.VerifyNoOtherCalls();
         }
 
@@ -55,7 +57,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Groups
             var groupsResult = Result<IEnumerable<Group>>.Failure(GroupErrors.CreationGroupError);
 
             _groupRepositoryMock
-                .Setup(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.GetAllAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(groupsResult);
 
             // Act
@@ -67,7 +69,7 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Groups
                 .Should()
                 .Be(GroupErrors.CreationGroupError);
 
-            _groupRepositoryMock.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once());
+            _groupRepositoryMock.Verify(repo => repo.GetAllAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once());
             _groupRepositoryMock.VerifyNoOtherCalls();
         }
     }

@@ -2,12 +2,11 @@
 using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Filters;
 using Feijuca.Auth.Domain.Interfaces;
-using Feijuca.Auth.Services;
+using Feijuca.Auth.Providers;
 using Flurl;
 using Mattioli.Configurations.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Feijuca.Auth.Infra.Data.Repositories
@@ -15,11 +14,11 @@ namespace Feijuca.Auth.Infra.Data.Repositories
     public class UserRepository(IClientRepository clientRepository,
         IHttpClientFactory httpClientFactory,
         IAuthRepository authRepository,
-        ITenantService tenantService) : BaseRepository(httpClientFactory), IUserRepository
+        ITenantProvider tenantService) : BaseRepository(httpClientFactory), IUserRepository
     {
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
         private readonly IAuthRepository _authRepository = authRepository;
-        private readonly ITenantService _tenantService = tenantService;
+        private readonly ITenantProvider _tenantService = tenantService;
 
         private static readonly JsonSerializerSettings Settings = new()
         {
@@ -342,7 +341,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
                 .AppendPathSegment("openid-connect")
                 .AppendPathSegment("token");
 
-            var client = await clientRepository.GetClientAsync("feijuca-auth-api", cancellationToken);
+            var client = await clientRepository.GetClientAsync("feijuca-auth-api", _tenantService.Tenant.Name, cancellationToken);
 
             var requestData = new FormUrlEncodedContent(
             [
@@ -403,7 +402,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
                 .AppendPathSegment("openid-connect")
                 .AppendPathSegment("logout");
 
-            var client = await clientRepository.GetClientAsync("feijuca-auth-api", cancellationToken);
+            var client = await clientRepository.GetClientAsync("feijuca-auth-api", _tenantService.Tenant.Name, cancellationToken);
 
             var requestData = new FormUrlEncodedContent(
             [
@@ -432,7 +431,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
                 .AppendPathSegment("openid-connect")
                 .AppendPathSegment("token");
 
-            var client = await clientRepository.GetClientAsync("feijuca-auth-api", cancellationToken);
+            var client = await clientRepository.GetClientAsync("feijuca-auth-api", _tenantService.Tenant.Name, cancellationToken);
 
             var requestData = new FormUrlEncodedContent(
             [

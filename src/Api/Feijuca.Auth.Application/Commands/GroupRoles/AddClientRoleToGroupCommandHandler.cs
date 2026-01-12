@@ -2,10 +2,14 @@
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using MediatR;
+using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Application.Commands.GroupRoles;
 
-public class AddClientRoleToGroupCommandHandler(IGroupRepository groupRepository, IGroupRolesRepository roleGroupRepository, IClientRoleRepository roleRepository) 
+public class AddClientRoleToGroupCommandHandler(IGroupRepository groupRepository, 
+    IGroupRolesRepository roleGroupRepository, 
+    IClientRoleRepository roleRepository,
+    ITenantProvider tenantProvider) 
     : IRequestHandler<AddClientRoleToGroupCommand, Result<bool>>
 {
     private readonly IGroupRepository _groupRepository = groupRepository;
@@ -14,8 +18,8 @@ public class AddClientRoleToGroupCommandHandler(IGroupRepository groupRepository
 
     public async Task<Result<bool>> Handle(AddClientRoleToGroupCommand request, CancellationToken cancellationToken)
     {
-        var groupsResult = await _groupRepository.GetAllAsync(cancellationToken);
-        var rolesResult = await _roleRepository.GetRolesForClientAsync(request.AddRoleToGroupRequest.ClientId, cancellationToken);
+        var groupsResult = await _groupRepository.GetAllAsync(tenantProvider.Tenant.Name, cancellationToken);
+        var rolesResult = await _roleRepository.GetRolesForClientAsync(request.AddRoleToGroupRequest.ClientId, tenantProvider.Tenant.Name, cancellationToken);
 
         if (groupsResult.IsSuccess && rolesResult.IsSuccess)
         {
@@ -30,6 +34,7 @@ public class AddClientRoleToGroupCommandHandler(IGroupRepository groupRepository
                     request.AddRoleToGroupRequest.ClientId,
                     role.Id,
                     role.Name,
+                    tenantProvider.Tenant.Name,
                     cancellationToken);
 
                 if (result.IsSuccess)
