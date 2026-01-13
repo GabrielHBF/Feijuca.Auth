@@ -12,7 +12,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
     public class ClientScopesRepository(IHttpClientFactory httpClientFactory, IAuthRepository authRepository, ITenantProvider tenantService)
         : BaseRepository(httpClientFactory), IClientScopesRepository
     {
-        public async Task<bool> AddAudienceMapperAsync(string clientScopeId, CancellationToken cancellationToken)
+        public async Task<bool> AddAudienceMapperAsync(string clientScopeId, string tenant, CancellationToken cancellationToken)
         {
             var tokenDetails = await authRepository.GetAccessTokenAsync(cancellationToken);
             using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
@@ -20,7 +20,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             var url = httpClient.BaseAddress
                 .AppendPathSegment("admin")
                 .AppendPathSegment("realms")
-                .AppendPathSegment(tenantService.Tenant.Name)
+                .AppendPathSegment(tenant)
                 .AppendPathSegment("client-scopes")
                 .AppendPathSegment($"{clientScopeId}")
                 .AppendPathSegment($"protocol-mappers")
@@ -48,7 +48,11 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> AddUserPropertyMapperAsync(string clientScopeId, string userPropertyName, string claimName, CancellationToken cancellationToken)
+        public async Task<bool> AddUserPropertyMapperAsync(string clientScopeId, 
+            string userPropertyName, 
+            string claimName, 
+            string tenant,
+            CancellationToken cancellationToken)
         {
             var tokenDetails = await authRepository.GetAccessTokenAsync(cancellationToken);
             using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
@@ -56,7 +60,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             var url = httpClient.BaseAddress
                 .AppendPathSegment("admin")
                 .AppendPathSegment("realms")
-                .AppendPathSegment(tenantService.Tenant.Name)
+                .AppendPathSegment(tenant)
                 .AppendPathSegment("client-scopes")
                 .AppendPathSegment(clientScopeId)
                 .AppendPathSegment("protocol-mappers")
@@ -64,7 +68,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
 
             var userPropertyMapper = new
             {
-                name = $"{claimName}-mapper",  // Nome amigável para o mapper
+                name = $"{claimName}-mapper",
                 protocol = "openid-connect",
                 protocolMapper = "oidc-usermodel-attribute-mapper", //when wish create property type instead of attribute type use oidc-usermodel-property-mapper
                 consentRequired = false,
@@ -146,7 +150,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             return false;
         }
 
-        public async Task<IEnumerable<ClientScopeEntity>> GetClientScopesAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<ClientScopeEntity>> GetClientScopesAsync(string tenant, CancellationToken cancellationToken)
         {
             var tokenDetails = await authRepository.GetAccessTokenAsync(cancellationToken);
             using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
@@ -154,7 +158,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             var url = httpClient.BaseAddress
                 .AppendPathSegment("admin")
                 .AppendPathSegment("realms")
-                .AppendPathSegment(tenantService.Tenant.Name)
+                .AppendPathSegment(tenant)
                 .AppendPathSegment("client-scopes");
 
             using var response = await httpClient.GetAsync(url, cancellationToken);
@@ -174,10 +178,43 @@ namespace Feijuca.Auth.Infra.Data.Repositories
                 "web-origins",
                 "acr",
                 "offline_access",
-                "microprofile-jwt"
+                "microprofile-jwt",
+                "phone",
+                "role_list",
+                "address",
+                "acr"
             };
 
             return clientScopes.Where(scope => !defaultClientScopes.Contains(scope?.Name ?? ""));
+        }
+
+        public async Task<ClientScopeEntity> GetClientScopeProfileAsync(string tenant, CancellationToken cancellationToken)
+        {
+            var tokenDetails = await authRepository.GetAccessTokenAsync(cancellationToken);
+            using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
+
+            var url = httpClient.BaseAddress
+                .AppendPathSegment("admin")
+                .AppendPathSegment("realms")
+                .AppendPathSegment(tenant)
+                .AppendPathSegment("client-scopes");
+
+            using var response = await httpClient.GetAsync(url, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return null!;
+            }
+
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            var clientScopes = JsonConvert.DeserializeObject<IEnumerable<ClientScopeEntity>>(responseBody) ?? [];
+
+            var defaultClientScopes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "profile"
+            };
+
+            return clientScopes.First(scope => string.Equals(scope?.Name, "profile", StringComparison.OrdinalIgnoreCase));
         }
     }
 }

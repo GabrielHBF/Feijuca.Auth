@@ -5,6 +5,7 @@ using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
 {
@@ -12,11 +13,12 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
     {
         private readonly IFixture _fixture = new Fixture();
         private readonly Mock<IGroupUsersRepository> _groupUsersRepositoryMock = new();
+        private readonly Mock<ITenantProvider> _tenantProviderMock = new();
         private readonly AddUserToGroupCommandHandler _handler;
 
         public AddUserToGroupCommandHandlerTests()
         {
-            _handler = new AddUserToGroupCommandHandler(_groupUsersRepositoryMock.Object);
+            _handler = new AddUserToGroupCommandHandler(_groupUsersRepositoryMock.Object, _tenantProviderMock.Object);
         }
 
         [Fact]
@@ -28,7 +30,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
             var groupUserResult = Result<bool>.Success(true);
 
             _groupUsersRepositoryMock
-                .Setup(repo => repo.AddUserToGroupAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.AddUserToGroupAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(groupUserResult);
 
             // Act
@@ -40,7 +42,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
                 .Should()
                 .BeTrue();
 
-            _groupUsersRepositoryMock.Verify(repo => repo.AddUserToGroupAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once());
+            _groupUsersRepositoryMock.Verify(repo => repo.AddUserToGroupAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once());
             _groupUsersRepositoryMock.VerifyNoOtherCalls();
         }
 
@@ -53,7 +55,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
             var groupUserResult = Result<bool>.Failure(UserGroupErrors.ErrorAddUserToGroup);
 
             _groupUsersRepositoryMock
-                .Setup(repo => repo.AddUserToGroupAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.AddUserToGroupAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(groupUserResult);
 
             // Act
@@ -65,7 +67,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupUser
                 .Should()
                 .Be(UserGroupErrors.ErrorAddUserToGroup);
 
-            _groupUsersRepositoryMock.Verify(repo => repo.AddUserToGroupAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once());
+            _groupUsersRepositoryMock.Verify(repo => repo.AddUserToGroupAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once());
             _groupUsersRepositoryMock.VerifyNoOtherCalls();
         }
     }

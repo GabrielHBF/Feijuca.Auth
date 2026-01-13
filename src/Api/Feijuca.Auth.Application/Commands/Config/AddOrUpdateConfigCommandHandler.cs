@@ -38,7 +38,6 @@ namespace Feijuca.Auth.Application.Commands.Config
                 var newRealm = new Models.Realm
                 {
                     Audience = request.Request.Realms!.First().Audience,
-                    DefaultSwaggerTokenGeneration = false,
                     Name = request.Request.Realms!.First().Name,
                 };
 

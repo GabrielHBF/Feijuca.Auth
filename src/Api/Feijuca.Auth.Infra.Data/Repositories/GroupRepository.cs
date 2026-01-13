@@ -37,6 +37,39 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             return Result<IEnumerable<Group>>.Failure(tokenDetailsResult.Error);
         }
 
+        public async Task<Result<IEnumerable<Group>>> GetGroupByNameAsync(
+            string tenant,
+            string? groupName,
+            CancellationToken cancellationToken)
+        {
+            var tokenDetailsResult = await _authRepository.GetAccessTokenAsync(cancellationToken);
+
+            if (!tokenDetailsResult.IsSuccess)
+                return Result<IEnumerable<Group>>.Failure(tokenDetailsResult.Error);
+
+            using var httpClient = CreateHttpClientWithHeaders(tokenDetailsResult.Data.Access_Token);
+
+            var url = httpClient.BaseAddress
+                .AppendPathSegment("admin")
+                .AppendPathSegment("realms")
+                .AppendPathSegment(tenant)
+                .AppendPathSegment("groups");
+
+            if (!string.IsNullOrWhiteSpace(groupName))
+            {
+                url = url.SetQueryParam("search", groupName);
+            }
+
+            using var response = await httpClient.GetAsync(url, cancellationToken);
+
+            response.EnsureSuccessStatusCode();
+
+            var groupsJson = await response.Content.ReadAsStringAsync(cancellationToken);
+            var groups = JsonConvert.DeserializeObject<IEnumerable<Group>>(groupsJson)!;
+
+            return Result<IEnumerable<Group>>.Success(groups);
+        }
+
         public async Task<Result> CreateAsync(string name, string tenant, Dictionary<string, string[]> attributes, CancellationToken cancellationToken)
         {
             var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);

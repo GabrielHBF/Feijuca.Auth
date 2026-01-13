@@ -26,7 +26,7 @@ namespace Feijuca.Auth.Application.Queries.Realm
             if (request.ReplicateRealmRequest!.ReplicationConfigurationRequest.CreateAdminGroupWithAllRulesAssociated)
             {
                 await groupRepository.CreateAsync(Constants.AdminGroupName, targetTenant, [], cancellationToken);
-                var groups = await groupRepository.GetAllAsync(targetTenant, cancellationToken);
+                var groups = await groupRepository.GetGroupByNameAsync(targetTenant, Constants.AdminGroupName, cancellationToken);
                 adminGroupId = groups.Data.First(x => x.Name == Constants.AdminGroupName).Id;
             }
 
@@ -42,45 +42,50 @@ namespace Feijuca.Auth.Application.Queries.Realm
                          { "Tenant", [targetTenant] }
                      });
 
-                await userRepository.CreateAsync(user, cancellationToken);
+                var creationUserResult = await userRepository.CreateAsync(user, cancellationToken);
+
+                if (creationUserResult.IsSuccess)
+                {
+                    var keycloakUser = await userRepository.GetAsync(user.Username, targetTenant, cancellationToken);
+                    await userRepository.ResetPasswordAsync(keycloakUser.Data.Id, user.Password, targetTenant, cancellationToken);
+                }
 
                 user = (await userRepository.GetAsync(user.Username, targetTenant, cancellationToken)).Data;
 
-                await groupUsersRepository.AddUserToGroupAsync(user.Id, Guid.Parse(adminGroupId), cancellationToken);
+                await groupUsersRepository.AddUserToGroupAsync(user.Id, targetTenant, Guid.Parse(adminGroupId), cancellationToken);
             }
 
             if (request.ReplicateRealmRequest.ReplicationConfigurationRequest.IncludeClients)
             {
-
                 var originClients = await clientRepository.GetClientsAsync(originTenant, cancellationToken);
                 foreach (var client in originClients?.Data ?? [])
                 {
-                    var result = await clientRepository.CreateClientAsync(client, targetTenant, cancellationToken);
-                    var targetClientCreated = await clientRepository.GetClientAsync(client.ClientId, targetTenant, cancellationToken);
+                    await clientRepository.CreateClientAsync(client, targetTenant, cancellationToken);
+                    var getClientJustCreated = await clientRepository.GetClientAsync(client.ClientId, targetTenant, cancellationToken);
 
                     if (request.ReplicateRealmRequest?.ReplicationConfigurationRequest.IncludeClientRoles ?? false)
                     {
-                        var clientRoles = await clientRoleRepository.GetRolesForClientAsync(client.Id, originTenant, cancellationToken);
+                        var originClientRoles = await clientRoleRepository.GetRolesForClientAsync(client.Id, originTenant, cancellationToken);
 
-                        foreach (var clientRole in clientRoles.Data)
+                        foreach (var clientRole in originClientRoles.Data)
                         {
-                            await clientRoleRepository.AddClientRoleAsync(targetClientCreated.Data.Id,
+                            await clientRoleRepository.AddClientRoleAsync(getClientJustCreated.Data.Id,
                                 clientRole.Name,
                                 clientRole?.Description ?? "",
-                                request.ReplicateRealmRequest!.Tenant!,
+                                targetTenant,
                                 cancellationToken);
                         }
-                        
+
                         if (request.ReplicateRealmRequest?.ReplicationConfigurationRequest.CreateAdminGroupWithAllRulesAssociated ?? false)
                         {
-                            var clientRulesAdded = await clientRoleRepository.GetRolesForClientAsync(targetClientCreated.Data.Id, targetTenant, cancellationToken);
+                            var targetClientRulesAdded = await clientRoleRepository.GetRolesForClientAsync(getClientJustCreated.Data.Id, targetTenant, cancellationToken);
 
-                            foreach (var clientRuleAdded in clientRulesAdded.Data)
+                            foreach (var targetClientRuleAdded in targetClientRulesAdded.Data)
                             {
                                 await groupRolesRepository.AddClientRoleToGroupAsync(adminGroupId,
-                                    targetClientCreated.Data.Id,
-                                    clientRuleAdded.Id,
-                                    clientRuleAdded.Name,
+                                    getClientJustCreated.Data.Id,
+                                    targetClientRuleAdded.Id,
+                                    targetClientRuleAdded.Name,
                                     targetTenant,
                                     cancellationToken);
                             }
@@ -91,8 +96,9 @@ namespace Feijuca.Auth.Application.Queries.Realm
 
             if (request.ReplicateRealmRequest?.ReplicationConfigurationRequest.IncludeClientScopes ?? false)
             {
-                var clientScopes = await clientScopesRepository.GetClientScopesAsync(cancellationToken);
-                foreach (var clientScope in clientScopes ?? [])
+                var originClientScopes = await clientScopesRepository.GetClientScopesAsync(originTenant, cancellationToken);
+
+                foreach (var clientScope in originClientScopes ?? [])
                 {
                     var result = await clientScopesRepository.AddClientScopesAsync(clientScope, targetTenant, cancellationToken);
 
@@ -100,7 +106,17 @@ namespace Feijuca.Auth.Application.Queries.Realm
                     {
                         return Result<bool>.Failure(RealmErrors.ReplicateRealmError);
                     }
+
+                    if (clientScope.Name == Constants.FeijucaApiClientName)
+                    {
+                        var targetClientScopes = await clientScopesRepository.GetClientScopesAsync(targetTenant, cancellationToken);
+                        var clientScopeFeijuca = targetClientScopes.FirstOrDefault(x => x.Name == Constants.FeijucaApiClientName)!;
+                        await clientScopesRepository.AddAudienceMapperAsync(clientScopeFeijuca.Id!, targetTenant, cancellationToken);
+                    }
                 }
+
+                var clientScopeProfile = await clientScopesRepository.GetClientScopeProfileAsync(targetTenant, cancellationToken);
+                await clientScopesRepository.AddUserPropertyMapperAsync(clientScopeProfile.Id!, "tenant", "tenant", targetTenant, cancellationToken);
             }
 
             return Result<bool>.Success(true);

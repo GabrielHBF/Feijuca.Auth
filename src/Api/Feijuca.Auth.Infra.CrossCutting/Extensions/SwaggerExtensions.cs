@@ -14,7 +14,7 @@ namespace Feijuca.Auth.Infra.CrossCutting.Extensions
             {
                 var realmName = keycloakSettings?
                     .Realms?
-                    .FirstOrDefault(x => x.DefaultSwaggerTokenGeneration)?
+                    .FirstOrDefault()?
                     .Name;
 
                 options.SwaggerDoc("v1", new OpenApiInfo
@@ -22,7 +22,6 @@ namespace Feijuca.Auth.Infra.CrossCutting.Extensions
                     Title = "Feijuca.Auth.Api",
                     Version = "v1"
                 });
-
 
                 if (!string.IsNullOrEmpty(realmName))
                 {

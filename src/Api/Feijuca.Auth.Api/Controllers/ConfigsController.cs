@@ -78,7 +78,7 @@ namespace Feijuca.Auth.Api.Controllers
 
                 if (includeRealm)
                 {
-                    var addRealmRequest = new AddRealmRequest(addKeycloakSettings.Realm.Name!.ToLower(), "", addKeycloakSettings.Realm.DefaultSwaggerTokenGeneration);
+                    var addRealmRequest = new AddRealmRequest(addKeycloakSettings.Realm.Name!.ToLower(), "");
                     var realmResult = await _mediator.Send(new AddRealmsCommand([addRealmRequest]), cancellationToken);
                     if (realmResult.IsFailure)
                     {
