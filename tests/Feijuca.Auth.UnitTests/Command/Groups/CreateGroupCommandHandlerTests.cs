@@ -1,11 +1,12 @@
 ﻿using AutoFixture;
 using Feijuca.Auth.Application.Commands.Group;
 using Feijuca.Auth.Common.Errors;
-using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
-using FluentAssertions;
-using Moq;
+using Feijuca.Auth.Models;
 using Feijuca.Auth.Providers;
+using FluentAssertions;
+using Mattioli.Configurations.Models;
+using Moq;
 
 namespace Feijuca.Auth.Api.UnitTests.Command.Groups
 {
@@ -27,6 +28,10 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Groups
             // Arrange
             var createGroupCommand = _fixture.Create<AddGroupCommand>();
             var cancellationToken = _fixture.Create<CancellationToken>();
+
+            _tenantProviderMock
+                .Setup(provider => provider.Tenant)
+                .Returns(_fixture.Create<Tenant>());
 
             _groupRepositoryMock
                 .Setup(repo => repo.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string[]>>(), It.IsAny<CancellationToken>()))
@@ -53,6 +58,10 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Groups
             var cancellationToken = _fixture.Create<CancellationToken>();
 
             var failureResult = Result.Failure(GroupErrors.CreationGroupError);
+
+            _tenantProviderMock
+                .Setup(provider => provider.Tenant)
+                .Returns(_fixture.Create<Tenant>());
 
             _groupRepositoryMock
                 .Setup(repo => repo.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string[]>>(), It.IsAny<CancellationToken>()))

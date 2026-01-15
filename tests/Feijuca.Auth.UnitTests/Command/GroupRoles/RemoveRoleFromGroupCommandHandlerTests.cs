@@ -7,6 +7,7 @@ using Feijuca.Auth.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
 using Feijuca.Auth.Providers;
+using Feijuca.Auth.Models;
 
 namespace Feijuca.Auth.Api.UnitTests.Command.GroupRoles
 {
@@ -47,6 +48,10 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupRoles
             var groupsResult = Result<IEnumerable<Group>>.Success(groups);
             var rolesResult = Result<IEnumerable<Role>>.Success(roles);
 
+            _tenantProviderMock
+                .Setup(provider => provider.Tenant)
+                .Returns(_fixture.Create<Tenant>());
+
             _groupRepositoryMock
                 .Setup(repo => repo.GetAllAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(groupsResult);
@@ -86,6 +91,10 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupRoles
             var fixture = new Fixture();
             var command = fixture.Create<RemoveRoleFromGroupCommand>();
             var cancellationToken = fixture.Create<CancellationToken>();
+
+            _tenantProviderMock
+                .Setup(provider => provider.Tenant)
+                .Returns(_fixture.Create<Tenant>());
 
             var groupsResult = Result<IEnumerable<Group>>.Failure(GroupRolesErrors.RemovingRoleFromGroupError);
 

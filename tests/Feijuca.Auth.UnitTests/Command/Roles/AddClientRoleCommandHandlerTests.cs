@@ -1,11 +1,12 @@
 ﻿using AutoFixture;
 using Feijuca.Auth.Application.Commands.ClientRole;
 using Feijuca.Auth.Common.Errors;
-using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
-using FluentAssertions;
-using Moq;
+using Feijuca.Auth.Models;
 using Feijuca.Auth.Providers;
+using FluentAssertions;
+using Mattioli.Configurations.Models;
+using Moq;
 
 namespace Feijuca.Auth.Api.UnitTests.Command.Roles
 {
@@ -27,6 +28,10 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Roles
             var addRoleCommand = _fixture.Create<AddClientRoleCommand>();
             var cancellationToken = _fixture.Create<CancellationToken>();
             var addRoleResult = Result<bool>.Success(true);
+
+            _tenantProviderMock
+                .Setup(provider => provider.Tenant)
+                .Returns(_fixture.Create<Tenant>());
 
             _roleRepositoryMock
                 .Setup(repo => repo.AddClientRoleAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -56,6 +61,10 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Roles
             var addRoleCommand = _fixture.Create<AddClientRoleCommand>();
             var cancellationToken = _fixture.Create<CancellationToken>();
             var addRoleResult = Result<bool>.Failure(RoleErrors.AddRoleErrors);
+
+            _tenantProviderMock
+                .Setup(provider => provider.Tenant)
+                .Returns(_fixture.Create<Tenant>());
 
             _roleRepositoryMock
                 .Setup(repo => repo.AddClientRoleAsync(

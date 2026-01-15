@@ -1,12 +1,13 @@
 ﻿using AutoFixture;
 using Feijuca.Auth.Application.Queries.Permissions;
 using Feijuca.Auth.Common.Errors;
-using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
-using FluentAssertions;
-using Moq;
+using Feijuca.Auth.Models;
 using Feijuca.Auth.Providers;
+using FluentAssertions;
+using Mattioli.Configurations.Models;
+using Moq;
 
 namespace Feijuca.Auth.Api.UnitTests.Queries.Permissions
 {
@@ -15,12 +16,12 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Permissions
         private readonly IFixture _fixture = new Fixture();
         private readonly Mock<IClientRepository> _clientRepositoryMock = new();
         private readonly Mock<IClientRoleRepository> _roleRepositoryMock = new();
-        private readonly Mock<ITenantProvider> _tennatProvider = new();
+        private readonly Mock<ITenantProvider> _tenantProviderMock = new();
         private readonly GetClientsRolesQueryHandler _handler;
 
         public GetRolesQueryHandlerTests()
         {
-            _handler = new GetClientsRolesQueryHandler(_clientRepositoryMock.Object, _roleRepositoryMock.Object, _tennatProvider.Object);
+            _handler = new GetClientsRolesQueryHandler(_clientRepositoryMock.Object, _roleRepositoryMock.Object, _tenantProviderMock.Object);
         }
 
         [Fact]
@@ -30,6 +31,10 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Permissions
             var rolesQuery = _fixture.Create<GetClientRolesQuery>();
             var cancellationToken = _fixture.Create<CancellationToken>();
             var rolesResult = Result<IEnumerable<ClientEntity>>.Failure(RoleErrors.GetRoleErrors);
+
+            _tenantProviderMock
+                .Setup(provider => provider.Tenant)
+                .Returns(_fixture.Create<Tenant>());
 
             _clientRepositoryMock
                 .Setup(repo => repo.GetClientsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -57,6 +62,10 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Permissions
             var clients = _fixture.CreateMany<ClientEntity>();
             var clientsResult = Result<IEnumerable<ClientEntity>>.Success(clients);
             var rolesResult = Result<IEnumerable<Role>>.Failure(RoleErrors.GetRoleErrors);
+
+            _tenantProviderMock
+                .Setup(provider => provider.Tenant)
+                .Returns(_fixture.Create<Tenant>());
 
             _clientRepositoryMock
                 .Setup(repo => repo.GetClientsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -98,6 +107,10 @@ namespace Feijuca.Auth.Api.UnitTests.Queries.Permissions
             var clientsResult = Result<IEnumerable<ClientEntity>>.Success(clients);
             var roles = _fixture.CreateMany<Role>();
             var rolesResult = Result<IEnumerable<Role>>.Success(roles);
+
+            _tenantProviderMock
+                .Setup(provider => provider.Tenant)
+                .Returns(_fixture.Create<Tenant>());
 
             _clientRepositoryMock
                 .Setup(repo => repo.GetClientsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
