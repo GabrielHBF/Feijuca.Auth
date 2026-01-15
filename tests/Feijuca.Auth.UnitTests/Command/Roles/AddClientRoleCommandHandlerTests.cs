@@ -5,6 +5,7 @@ using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Api.UnitTests.Command.Roles
 {
@@ -12,11 +13,12 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Roles
     {
         private readonly IFixture _fixture = new Fixture();
         private readonly Mock<IClientRoleRepository> _roleRepositoryMock = new();
+        private readonly Mock<ITenantProvider> _tenantProviderMock = new();
         private readonly AddClientRoleCommandHandler _handler;
 
         public AddClientRoleCommandHandlerTests()
         {
-            _handler = new AddClientRoleCommandHandler(_roleRepositoryMock.Object);
+            _handler = new AddClientRoleCommandHandler(_roleRepositoryMock.Object, _tenantProviderMock.Object);
         }
 
         [Fact]
@@ -27,7 +29,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Roles
             var addRoleResult = Result<bool>.Success(true);
 
             _roleRepositoryMock
-                .Setup(repo => repo.AddClientRoleAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.AddClientRoleAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(addRoleResult);
 
             // Act
@@ -39,7 +41,12 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Roles
                 .Should()
                 .BeTrue();
 
-            _roleRepositoryMock.Verify(repo => repo.AddClientRoleAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
+            _roleRepositoryMock.Verify(repo => repo.AddClientRoleAsync(It.IsAny<string>(), 
+                It.IsAny<string>(), 
+                It.IsAny<string>(), 
+                It.IsAny<string>(), 
+                It.IsAny<CancellationToken>()));
+
             _roleRepositoryMock.VerifyNoOtherCalls();
         }
 
@@ -51,7 +58,12 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Roles
             var addRoleResult = Result<bool>.Failure(RoleErrors.AddRoleErrors);
 
             _roleRepositoryMock
-                .Setup(repo => repo.AddClientRoleAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.AddClientRoleAsync(
+                    It.IsAny<string>(), 
+                    It.IsAny<string>(), 
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(addRoleResult);
 
             // Act
@@ -63,7 +75,13 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Roles
                 .Should()
                 .Be(RoleErrors.AddRoleErrors);
 
-            _roleRepositoryMock.Verify(repo => repo.AddClientRoleAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
+            _roleRepositoryMock.Verify(repo => repo.AddClientRoleAsync(
+                It.IsAny<string>(), 
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(), 
+                It.IsAny<CancellationToken>()));
+
             _roleRepositoryMock.VerifyNoOtherCalls();
         }
     }

@@ -1,16 +1,17 @@
 ﻿using Feijuca.Auth.Application.Responses;
 using Feijuca.Auth.Domain.Interfaces;
+using Feijuca.Auth.Providers;
 using MediatR;
 
 namespace Feijuca.Auth.Application.Queries.Clients
 {
-    public class GetAllClientsQueryHandler(IClientRepository clientRepository) : IRequestHandler<GetAllClientsQuery, IEnumerable<ClientResponse>>
+    public class GetAllClientsQueryHandler(IClientRepository clientRepository, ITenantProvider tenantProvider) : IRequestHandler<GetAllClientsQuery, IEnumerable<ClientResponse>>
     {
         private readonly IClientRepository _clientRepository = clientRepository;
 
         public async Task<IEnumerable<ClientResponse>> Handle(GetAllClientsQuery request, CancellationToken cancellationToken)
         {
-            var clientsResult = await _clientRepository.GetClientsAsync(cancellationToken);
+            var clientsResult = await _clientRepository.GetClientsAsync(tenantProvider.Tenant.Name, cancellationToken);
 
             if (clientsResult.IsSuccess)
             {

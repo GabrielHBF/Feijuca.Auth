@@ -1,7 +1,6 @@
 ﻿using Feijuca.Auth.Common.Errors;
 using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
-using Feijuca.Auth.Services;
 using Flurl;
 using Mattioli.Configurations.Models;
 using Newtonsoft.Json;
@@ -9,11 +8,9 @@ using System.Text;
 
 namespace Feijuca.Auth.Infra.Data.Repositories;
 
-public class ClientRepository(IHttpClientFactory httpClientFactory,
-    IAuthRepository _authRepository,
-    ITenantService _tenantService) : BaseRepository(httpClientFactory), IClientRepository
+public class ClientRepository(IHttpClientFactory httpClientFactory, IAuthRepository _authRepository) : BaseRepository(httpClientFactory), IClientRepository
 {
-    public async Task<bool> CreateClientAsync(ClientEntity client, CancellationToken cancellationToken)
+    public async Task<bool> CreateClientAsync(ClientEntity client, string tenantName, CancellationToken cancellationToken)
     {
         var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
 
@@ -21,7 +18,7 @@ public class ClientRepository(IHttpClientFactory httpClientFactory,
         var url = httpClient.BaseAddress
                .AppendPathSegment("admin")
                .AppendPathSegment("realms")
-               .AppendPathSegment(_tenantService.Tenant.Name)
+               .AppendPathSegment(tenantName)
                .AppendPathSegment("clients");
 
         var clientConfig = new
@@ -46,13 +43,14 @@ public class ClientRepository(IHttpClientFactory httpClientFactory,
         using var response = await httpClient.PostAsync(url, content, cancellationToken);
         if (response.IsSuccessStatusCode)
         {
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             return true;
         }
 
         return false;
     }
 
-    public async Task<Result<ClientEntity>> GetClientAsync(string clientId, CancellationToken cancellationToken)
+    public async Task<Result<ClientEntity>> GetClientAsync(string clientId, string tenant, CancellationToken cancellationToken)
     {
         var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
         using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
@@ -60,7 +58,7 @@ public class ClientRepository(IHttpClientFactory httpClientFactory,
         var url = httpClient.BaseAddress
                 .AppendPathSegment("admin")
                 .AppendPathSegment("realms")
-                .AppendPathSegment(_tenantService.Tenant.Name)
+                .AppendPathSegment(tenant)
                 .AppendPathSegment("clients")
                 .AppendQueryParam("clientId", clientId);
 
@@ -76,7 +74,7 @@ public class ClientRepository(IHttpClientFactory httpClientFactory,
         return Result<ClientEntity>.Failure(ClientErrors.GetClientsErrors);
     }
 
-    public async Task<Result<IEnumerable<ClientEntity>>> GetClientsAsync(CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<ClientEntity>>> GetClientsAsync(string tenant, CancellationToken cancellationToken)
     {
         var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
         using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
@@ -84,7 +82,7 @@ public class ClientRepository(IHttpClientFactory httpClientFactory,
         var url = httpClient.BaseAddress
                 .AppendPathSegment("admin")
                 .AppendPathSegment("realms")
-                .AppendPathSegment(_tenantService.Tenant.Name)
+                .AppendPathSegment(tenant)
                 .AppendPathSegment("clients");
 
         using var response = await httpClient.GetAsync(url, cancellationToken);
@@ -93,7 +91,16 @@ public class ClientRepository(IHttpClientFactory httpClientFactory,
         {
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             var result = JsonConvert.DeserializeObject<IEnumerable<ClientEntity>>(responseContent)!;
-            var defaultClients = new List<string> { "account", "admin-cli", "broker", "realm-management", "security-admin-console", "account-console" };
+            var defaultClients = new List<string> 
+            { 
+                "account", 
+                "admin-cli", 
+                "broker", 
+                "realm-management", 
+                "security-admin-console", 
+                "account-console" 
+            };
+
             var clientsWithoutDefaultClients = result.Where(client => !defaultClients.Contains(client.ClientId.ToString())).ToList();
             return Result<IEnumerable<ClientEntity>>.Success(clientsWithoutDefaultClients!);
         }

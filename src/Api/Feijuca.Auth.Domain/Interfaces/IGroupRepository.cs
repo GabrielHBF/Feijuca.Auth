@@ -6,8 +6,14 @@ namespace Feijuca.Auth.Domain.Interfaces
 {
     public interface IGroupRepository : IBaseRepository
     {
-        Task<Result<IEnumerable<Group>>> GetAllAsync(CancellationToken cancellationToken);
-        Task<Result> CreateAsync(string name, Dictionary<string, string[]> attributes, CancellationToken cancellationToken);
+        Task<Result<IEnumerable<Group>>> GetAllAsync(string tenant, CancellationToken cancellationToken);
+
+        Task<Result<IEnumerable<Group>>> GetGroupByNameAsync(
+            string tenant,
+            string? groupName,
+            CancellationToken cancellationToken);
+
+        Task<Result> CreateAsync(string name, string tenant, Dictionary<string, string[]> attributes, CancellationToken cancellationToken);
         Task<Result> DeleteAsync(string id, CancellationToken cancellationToken);
         Task<Result<IEnumerable<User>>> GetUsersInGroupAsync(string id, UserFilters userFilters, int totalUsers, CancellationToken cancellationToken);
     }

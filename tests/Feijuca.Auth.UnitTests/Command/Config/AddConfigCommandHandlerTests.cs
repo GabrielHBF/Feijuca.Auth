@@ -4,7 +4,7 @@ using Feijuca.Auth.Common.Errors;
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
-using Feijuca.Auth.Services;
+using Feijuca.Auth.Providers;
 
 using FluentAssertions;
 using Moq;
@@ -15,7 +15,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Config
     {
         private readonly IFixture _fixture = new Fixture();
         private readonly Mock<IConfigRepository> _configRepositoryMock = new();
-        private readonly Mock<ITenantService> _tenantService = new();
+        private readonly Mock<ITenantProvider> _tenantService = new();
         private readonly AddOrUpdateConfigCommandHandler _handler;
 
         public AddConfigCommandHandlerTests()

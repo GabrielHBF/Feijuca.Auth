@@ -34,30 +34,30 @@ namespace Feijuca.Auth.Api.Controllers
         }
 
         /// <summary>
-        /// Retrieves all configs related to a realm.
+        /// This endpoint has the purpose to replicate clients/client-scopes to another existing tenant.
         /// </summary>
         /// <returns>
         /// A 201 Created status code containing a realm config if the request is successful;
         /// otherwise, a 400 Bad Request status code with an error message.
         /// </returns>
         /// <param name="cancellationToken">A <see cref="T:System.Threading.CancellationToken"/> that can be used to signal cancellation for the operation.</param>
-        /// <param name="name">The name of the realm.</param>
-        [HttpGet]
-        [Route("export/{name}", Name = nameof(ExportRealm))]
+        /// <param name="replicateRealmRequest">Use this parameter to handle what are the things that you should replicate. Inform the clients name, scope names and so on...</param>
+        [HttpPost]
+        [Route("replicate", Name = nameof(ReplicateRealm))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [RequiredRole("Feijuca.ApiReader")]
-        public async Task<IActionResult> ExportRealm([FromRoute] string name, CancellationToken cancellationToken)
+        [RequiredRole("Feijuca.ApiWriter")]
+        public async Task<IActionResult> ReplicateRealm([FromBody] ReplicateRealmRequest replicateRealmRequest, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetRealmConfigurationQuery(name), cancellationToken);
+            var result = await _mediator.Send(new ReplicateRealmCommand(replicateRealmRequest), cancellationToken);
 
-            if (!string.IsNullOrEmpty(name))
+            if (result.IsSuccess)
             {
-                return Created($"/export/{name}", result);
+                return Created($"/replicate", result.Data);
             }
 
-            return BadRequest();
+            return BadRequest(result.Error);
         }
 
         /// <summary>
@@ -73,16 +73,17 @@ namespace Feijuca.Auth.Api.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [RequiredRole("Feijuca.ApiWriter")]
         public async Task<IActionResult> AddRealm([FromBody] AddRealmRequest realm, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new AddRealmsCommand([realm]), cancellationToken);
 
             if (result.IsSuccess)
             {
-                return Created("/api/v1/realm", result);
+                return Created("/api/v1/realm", result.Data);
             }
 
-            return BadRequest();
+            return BadRequest(result.Error);
         }
     }
 }

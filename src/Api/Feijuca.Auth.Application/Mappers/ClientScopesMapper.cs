@@ -6,9 +6,13 @@ namespace Feijuca.Auth.Application.Mappers
 {
     public static class ClientScopesMapper
     {
-        public static ClientScopesEntity ToClientScopesEntity(this AddClientScopesRequest addClientScopesRequest)
+        public static ClientScopeEntity ToClientScopesEntity(this AddClientScopesRequest addClientScopesRequest)
         {
-            return new ClientScopesEntity(addClientScopesRequest.Name, addClientScopesRequest.Description, addClientScopesRequest.IncludeInTokenScope);
+            return new ClientScopeEntity
+            {
+                Name = addClientScopesRequest.Name,
+                Description = addClientScopesRequest.Description
+            };
         }
 
         public static IEnumerable<ClientScopesResponse> ToClientScopesResponse(this IEnumerable<ClientScopeEntity> clientScopeEntities)
@@ -17,7 +21,12 @@ namespace Feijuca.Auth.Application.Mappers
 
             foreach (var item in clientScopeEntities)
             {
-                list.Add(new ClientScopesResponse(item.Id, item.Name, item.Description, item.Protocol, item.Attributes, item.ProtocolMappers.ToProtocolMapperResponse()));
+                list.Add(new ClientScopesResponse(item.Id ?? "", 
+                    item.Name ?? "", 
+                    item.Description ?? "", 
+                    item.Protocol ?? "", 
+                    item.Attributes ?? [], 
+                    item.ProtocolMappers?.ToProtocolMapperResponse() ?? []));
             }
 
             return list;

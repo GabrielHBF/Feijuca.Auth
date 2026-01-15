@@ -2,8 +2,7 @@
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
-using Feijuca.Auth.Services;
-
+using Feijuca.Auth.Providers;
 using Flurl;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,11 +11,16 @@ using System.Text;
 
 namespace Feijuca.Auth.Infra.Data.Repositories
 {
-    public class GroupRolesRepository(IHttpClientFactory httpClientFactory, IAuthRepository _authRepository, ITenantService _tenantService)
+    public class GroupRolesRepository(IHttpClientFactory httpClientFactory, IAuthRepository _authRepository, ITenantProvider _tenantService)
         : BaseRepository(httpClientFactory), IGroupRolesRepository
     {
 
-        public async Task<Result<bool>> AddClientRoleToGroupAsync(string groupId, string clientId, Guid roleId, string roleName, CancellationToken cancellationToken)
+        public async Task<Result<bool>> AddClientRoleToGroupAsync(string groupId,
+            string clientId, 
+            Guid roleId, 
+            string roleName, 
+            string tenant, 
+            CancellationToken cancellationToken)
         {
             var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
             using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
@@ -24,7 +28,7 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             var url = httpClient.BaseAddress
                     .AppendPathSegment("admin")
                     .AppendPathSegment("realms")
-                    .AppendPathSegment(_tenantService.Tenant.Name)
+                    .AppendPathSegment(tenant)
                     .AppendPathSegment("groups")
                     .AppendPathSegment(groupId)
                     .AppendPathSegment("role-mappings")

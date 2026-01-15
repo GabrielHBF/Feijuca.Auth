@@ -1,8 +1,8 @@
 ﻿using Feijuca.Auth.Common.Errors;
-using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
 using Flurl;
+using Mattioli.Configurations.Models;
 
 namespace Feijuca.Auth.Domain.Services
 {
@@ -26,8 +26,10 @@ namespace Feijuca.Auth.Domain.Services
                 realmsList.Add(new Models.Realm
                 {
                     Name = realm.Realm,
-                    Audience = realm.Realm,
-                    DefaultSwaggerTokenGeneration = realm.DefaultSwaggerTokenGeneration
+                    Audience = "feijuca-auth-api",
+                    Issuer = config.ServerSettings.Url
+                    .AppendPathSegment("realms")
+                    .AppendPathSegment(realm.Realm)
                 });
 
                 config.Realms = realmsList;

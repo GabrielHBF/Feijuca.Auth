@@ -8,17 +8,22 @@ namespace Feijuca.Auth.Common.Errors
 
         public static Error CreateRealmError => new(
             "Realm.CreateRealmError",
-            $"An error occurred while trying create a realm {TechnicalMessage}"
+            $"An error occurred while trying create a realm. {TechnicalMessage}"
         );
 
         public static Error UpdateRealmError => new(
             "Realm.UpdateRealmError",
-            $"An error occurred while trying update the realm {TechnicalMessage}"
+            $"An error occurred while trying update the realm. {TechnicalMessage}"
         );
 
         public static Error DeleteRealmError => new(
             "Realm.DeleteRealmError",
-            $"An error occurred while trying delete the realm {TechnicalMessage}"
+            $"An error occurred while trying delete the realm. {TechnicalMessage}"
+        );
+
+        public static Error ReplicateRealmError => new(
+            "Realm.ReplicateRealmError",
+            $"An error occurred while trying replicate the realm. {TechnicalMessage}"
         );
     }
 }

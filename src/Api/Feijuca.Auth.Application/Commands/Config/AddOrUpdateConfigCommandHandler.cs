@@ -4,13 +4,13 @@ using Feijuca.Auth.Common.Errors;
 using Mattioli.Configurations.Models;
 using Feijuca.Auth.Domain.Interfaces;
 using Feijuca.Auth.Models;
-using Feijuca.Auth.Services;
+using Feijuca.Auth.Providers;
 
 using MediatR;
 
 namespace Feijuca.Auth.Application.Commands.Config
 {
-    public class AddOrUpdateConfigCommandHandler(IConfigRepository configRepository, ITenantService tenantService) : IRequestHandler<AddOrUpdateConfigCommand, Result<bool>>
+    public class AddOrUpdateConfigCommandHandler(IConfigRepository configRepository, ITenantProvider tenantService) : IRequestHandler<AddOrUpdateConfigCommand, Result<bool>>
     {
         public async Task<Result<bool>> Handle(AddOrUpdateConfigCommand request, CancellationToken cancellationToken)
         {
@@ -38,7 +38,6 @@ namespace Feijuca.Auth.Application.Commands.Config
                 var newRealm = new Models.Realm
                 {
                     Audience = request.Request.Realms!.First().Audience,
-                    DefaultSwaggerTokenGeneration = false,
                     Name = request.Request.Realms!.First().Name,
                 };
 

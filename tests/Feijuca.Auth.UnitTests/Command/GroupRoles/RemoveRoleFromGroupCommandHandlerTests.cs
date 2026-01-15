@@ -6,6 +6,7 @@ using Feijuca.Auth.Domain.Entities;
 using Feijuca.Auth.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using Feijuca.Auth.Providers;
 
 namespace Feijuca.Auth.Api.UnitTests.Command.GroupRoles
 {
@@ -15,11 +16,16 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupRoles
         private readonly Mock<IGroupRepository> _groupRepositoryMock = new();
         private readonly Mock<IGroupRolesRepository> _groupRolesRepositoryMock = new();
         private readonly Mock<IClientRoleRepository> _roleRepositoryMock = new();
+        private readonly Mock<ITenantProvider> _tenantProviderMock = new();
         private readonly RemoveRoleFromGroupCommandHandler _handler;
 
         public RemoveRoleFromGroupCommandHandlerTests()
         {
-            _handler = new RemoveRoleFromGroupCommandHandler(_groupRepositoryMock.Object, _groupRolesRepositoryMock.Object, _roleRepositoryMock.Object);
+            _handler = new RemoveRoleFromGroupCommandHandler(
+                _groupRepositoryMock.Object, 
+                _groupRolesRepositoryMock.Object, 
+                _roleRepositoryMock.Object,
+                _tenantProviderMock.Object);
         }
 
         [Fact]
@@ -42,11 +48,11 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupRoles
             var rolesResult = Result<IEnumerable<Role>>.Success(roles);
 
             _groupRepositoryMock
-                .Setup(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.GetAllAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(groupsResult);
 
             _roleRepositoryMock
-                .Setup(repo => repo.GetRolesForClientAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.GetRolesForClientAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(rolesResult);
 
             _groupRolesRepositoryMock
@@ -62,8 +68,8 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupRoles
                 .Should()
                 .BeTrue();
 
-            _groupRepositoryMock.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
-            _roleRepositoryMock.Verify(repo => repo.GetRolesForClientAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            _groupRepositoryMock.Verify(repo => repo.GetAllAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            _roleRepositoryMock.Verify(repo => repo.GetRolesForClientAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
 
             _groupRolesRepositoryMock
                 .Verify(repo => repo.RemoveRoleFromGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
@@ -84,7 +90,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupRoles
             var groupsResult = Result<IEnumerable<Group>>.Failure(GroupRolesErrors.RemovingRoleFromGroupError);
 
             _groupRepositoryMock
-                .Setup(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.GetAllAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(groupsResult);
 
             // Act
@@ -96,7 +102,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.GroupRoles
                 .Should()
                 .Be(GroupRolesErrors.RemovingRoleFromGroupError);
 
-            _groupRepositoryMock.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
+            _groupRepositoryMock.Verify(repo => repo.GetAllAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
             _groupRolesRepositoryMock.VerifyNoOtherCalls();
         }
     }
