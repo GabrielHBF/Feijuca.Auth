@@ -14,7 +14,7 @@ namespace Feijuca.Auth.Application.Commands.Client
             var client = request.AddClientRequest.ToClientEntity();
             var result = await clientRepository.CreateClientAsync(client, tenantService.Tenant.Name, cancellationToken);
 
-            if (result)
+            if (result == null)
             {
                 return Result<bool>.Success(true);
             }

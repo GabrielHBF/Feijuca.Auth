@@ -35,7 +35,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Groups
 
             _groupRepositoryMock
                 .Setup(repo => repo.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string[]>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result.Success());
+                .ReturnsAsync(Result<string>.Success(_fixture.Create<string>()));
 
             // Act
             var result = await _handler.Handle(createGroupCommand, cancellationToken);
@@ -57,7 +57,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Groups
             var createGroupCommand = _fixture.Create<AddGroupCommand>();
             var cancellationToken = _fixture.Create<CancellationToken>();
 
-            var failureResult = Result.Failure(GroupErrors.CreationGroupError);
+            var failureResult = Result<string>.Failure(GroupErrors.CreationGroupError);
 
             _tenantProviderMock
                 .Setup(provider => provider.Tenant)

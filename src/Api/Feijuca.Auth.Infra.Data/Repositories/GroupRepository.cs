@@ -70,16 +70,20 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             return Result<IEnumerable<Group>>.Success(groups);
         }
 
-        public async Task<Result> CreateAsync(string name, string tenant, Dictionary<string, string[]> attributes, CancellationToken cancellationToken)
+        public async Task<Result<string>> CreateAsync(
+            string name,
+            string tenant,
+            Dictionary<string, string[]> attributes,
+            CancellationToken cancellationToken)
         {
             var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
             using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
 
             var url = httpClient.BaseAddress
-                    .AppendPathSegment("admin")
-                    .AppendPathSegment("realms")
-                    .AppendPathSegment(tenant)
-                    .AppendPathSegment("groups");
+                .AppendPathSegment("admin")
+                .AppendPathSegment("realms")
+                .AppendPathSegment(tenant)
+                .AppendPathSegment("groups");
 
             var group = new
             {
@@ -90,14 +94,26 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             var jsonContent = JsonConvert.SerializeObject(group);
             using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             using var response = await httpClient.PostAsync(url, content, cancellationToken);
-            if (response.IsSuccessStatusCode)
+
+            if (!response.IsSuccessStatusCode)
             {
-                return Result.Success();
+                GroupErrors.SetTechnicalMessage(response.ReasonPhrase!);
+                return Result<string>.Failure(GroupErrors.CreationGroupError);
             }
 
-            GroupErrors.SetTechnicalMessage(response.ReasonPhrase!);
-            return Result.Failure(GroupErrors.CreationGroupError);
+            var location = response.Headers.Location?.ToString();
+
+            if (string.IsNullOrWhiteSpace(location))
+            {
+                GroupErrors.SetTechnicalMessage("Header Location não retornado pelo Keycloak.");
+                return Result<string>.Failure(GroupErrors.CreationGroupError);
+            }
+
+            var groupId = location.Split('/').Last();
+
+            return Result<string>.Success(groupId);
         }
+
 
         public async Task<Result> DeleteAsync(string id, CancellationToken cancellationToken)
         {

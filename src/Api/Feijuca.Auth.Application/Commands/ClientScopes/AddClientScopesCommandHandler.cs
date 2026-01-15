@@ -16,7 +16,7 @@ namespace Feijuca.Auth.Application.Commands.ClientScopes
                 var scopeEntity = clientScope.ToClientScopesEntity();
                 var result = await clientScopesRepository.AddClientScopesAsync(scopeEntity, tenantService.Tenant.Name, cancellationToken);
 
-                if (!result)
+                if (string.IsNullOrEmpty(result))
                 {
                     return Result<bool>.Failure(ClientScopesErrors.CreateClientScopesError);
                 }

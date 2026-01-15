@@ -17,9 +17,9 @@ namespace Feijuca.Auth.Application.Commands.User
             if (result.IsSuccess)
             {
                 var keycloakUser = await _userRepository.GetAsync(user.Username, request.Tenant, cancellationToken);
-                result = await _userRepository.ResetPasswordAsync(keycloakUser.Data.Id, user.Password, request.Tenant, cancellationToken);
+                var resultResetPassword = await _userRepository.ResetPasswordAsync(keycloakUser.Data.Id, user.Password, request.Tenant, cancellationToken);
 
-                if (result.IsSuccess)
+                if (resultResetPassword.IsSuccess)
                 {
                     return Result<Guid>.Success(keycloakUser.Data.Id);
                 }

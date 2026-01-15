@@ -92,30 +92,42 @@ namespace Feijuca.Auth.Infra.Data.Repositories
             return Result<bool>.Failure(UserErrors.DeletionUserError);
         }
 
-        public async Task<Result<bool>> CreateAsync(User user, CancellationToken cancellationToken)
+        public async Task<Result<string>> CreateAsync(User user, CancellationToken cancellationToken)
         {
             var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
             using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
 
             var tenant = user.Attributes["Tenant"]?.FirstOrDefault();
             var url = httpClient.BaseAddress
-                    .AppendPathSegment("admin")
-                    .AppendPathSegment("realms")
-                    .AppendPathSegment(tenant)
-                    .AppendPathSegment("users");
+                .AppendPathSegment("admin")
+                .AppendPathSegment("realms")
+                .AppendPathSegment(tenant)
+                .AppendPathSegment("users");
 
             var json = JsonConvert.SerializeObject(user, Settings);
-            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            using var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
             using var response = await httpClient.PostAsync(url, httpContent, cancellationToken);
-            if (response.IsSuccessStatusCode)
-            {
-                return Result<bool>.Success(true);
-            }
-            var error = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            UserErrors.SetTechnicalMessage(error);
-            return Result<bool>.Failure(UserErrors.UserCreationError);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync(cancellationToken);
+                UserErrors.SetTechnicalMessage(error);
+                return Result<string>.Failure(UserErrors.UserCreationError);
+            }
+
+            var location = response.Headers.Location?.ToString();
+
+            if (string.IsNullOrWhiteSpace(location))
+            {
+                UserErrors.SetTechnicalMessage("Header Location not found.");
+                return Result<string>.Failure(UserErrors.UserCreationError);
+            }
+
+            var userId = location.Split('/').Last();
+
+            return Result<string>.Success(userId);
         }
+
 
         public async Task<Result<User>> GetAsync(string username, CancellationToken cancellationToken)
         {

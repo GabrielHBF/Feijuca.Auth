@@ -9,7 +9,7 @@ namespace Feijuca.Auth.Domain.Interfaces
         Task<Result<IEnumerable<User>>> GetAllAsync(UserFilters userFilters, int totalUsers, CancellationToken cancellationToken);
         Task<int> GetTotalAsync(CancellationToken cancellationToken);
         Task<Result<bool>> DeleteAsync(Guid id, CancellationToken cancellationToken);
-        Task<Result<bool>> CreateAsync(User user, CancellationToken cancellationToken);
+        Task<Result<string>> CreateAsync(User user, CancellationToken cancellationToken);
         Task<Result<bool>> UpdateUserAsync(Guid id, User user, CancellationToken cancellationToken);
         Task<Result<IEnumerable<KeycloakSession>>> GetUserSessionsAsync(Guid id, CancellationToken cancellationToken);
         Task<Result<bool>> ResetPasswordAsync(Guid id, string password, CancellationToken cancellationToken);

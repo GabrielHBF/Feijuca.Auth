@@ -25,7 +25,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
         {
             // Arrange
             var createUserCommand = _fixture.Create<AddUserCommand>();
-            var createUserResult = Result<bool>.Failure(UserErrors.UserCreationError);
+            var createUserResult = Result<string>.Failure(UserErrors.UserCreationError);
             var cancellationToken = _fixture.Create<CancellationToken>();
 
             _userRepositoryMock
@@ -50,7 +50,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
         {
             // Arrange
             var createUserCommand = _fixture.Create<AddUserCommand>();
-            var createUserResult = Result<bool>.Success(true);
+            var createUserResult = Result<string>.Success(_fixture.Create<string>());
 
             var mockUser = _fixture.Build<User>()
                                    .With(u => u.Username, createUserCommand.AddUserRequest.Username)
@@ -93,7 +93,7 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
         {
             // Arrange
             var createUserCommand = _fixture.Create<AddUserCommand>();
-            var createUserResult = Result<bool>.Success(true);
+            var createUserResult = Result<string>.Success(_fixture.Create<string>());
 
             var mockUser = _fixture.Build<User>()
                                    .With(u => u.Username, createUserCommand.AddUserRequest.Username)

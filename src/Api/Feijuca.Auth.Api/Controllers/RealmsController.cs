@@ -34,7 +34,7 @@ namespace Feijuca.Auth.Api.Controllers
         }
 
         /// <summary>
-        /// This endpoint has the purpose to replicate clients/client-scopes to another existing tenant.
+        /// This endpoint has the purpose to replicate clients/client-scopes to another existing realm (tenant).
         /// </summary>
         /// <returns>
         /// A 201 Created status code containing a realm config if the request is successful;

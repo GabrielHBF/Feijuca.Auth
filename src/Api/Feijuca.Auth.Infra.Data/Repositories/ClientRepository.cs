@@ -10,16 +10,19 @@ namespace Feijuca.Auth.Infra.Data.Repositories;
 
 public class ClientRepository(IHttpClientFactory httpClientFactory, IAuthRepository _authRepository) : BaseRepository(httpClientFactory), IClientRepository
 {
-    public async Task<bool> CreateClientAsync(ClientEntity client, string tenantName, CancellationToken cancellationToken)
+    public async Task<Result<string>> CreateClientAsync(
+        ClientEntity client,
+        string tenantName,  
+        CancellationToken cancellationToken)
     {
         var tokenDetails = await _authRepository.GetAccessTokenAsync(cancellationToken);
-
         using var httpClient = CreateHttpClientWithHeaders(tokenDetails.Data.Access_Token);
+
         var url = httpClient.BaseAddress
-               .AppendPathSegment("admin")
-               .AppendPathSegment("realms")
-               .AppendPathSegment(tenantName)
-               .AppendPathSegment("clients");
+            .AppendPathSegment("admin")
+            .AppendPathSegment("realms")
+            .AppendPathSegment(tenantName)
+            .AppendPathSegment("clients");
 
         var clientConfig = new
         {
@@ -38,17 +41,27 @@ public class ClientRepository(IHttpClientFactory httpClientFactory, IAuthReposit
         };
 
         var jsonContent = JsonConvert.SerializeObject(clientConfig);
-        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
+        using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
         using var response = await httpClient.PostAsync(url, content, cancellationToken);
-        if (response.IsSuccessStatusCode)
+
+        if (!response.IsSuccessStatusCode)
         {
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            return true;
+            return Result<string>.Failure(ClientErrors.CreateClientError);
         }
 
-        return false;
+        // 🔥 Client UUID vem no Location
+        var location = response.Headers.Location?.ToString();
+
+        if (string.IsNullOrWhiteSpace(location))
+        {
+            return Result<string>.Failure(ClientErrors.CreateClientError);
+        }
+
+        var clientUuid = location.Split('/').Last();
+
+        return Result<string>.Success(clientUuid);
     }
+
 
     public async Task<Result<ClientEntity>> GetClientAsync(string clientId, string tenant, CancellationToken cancellationToken)
     {
