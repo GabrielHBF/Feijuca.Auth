@@ -1,10 +1,7 @@
-﻿using Feijuca.Auth.Application.Requests.Pagination;
-using Feijuca.Auth.Application.Requests.Realm;
-using Feijuca.Auth.Application.Requests.User;
+﻿using Feijuca.Auth.Application.Requests.Realm;
 using Feijuca.Auth.Application.Responses;
 using Feijuca.Auth.Domain.Entities;
-using Feijuca.Auth.Domain.Filters;
-using Feijuca.Auth.Models;
+using Flurl;
 
 namespace Feijuca.Auth.Application.Mappers
 {
@@ -20,9 +17,10 @@ namespace Feijuca.Auth.Application.Mappers
             };
         }
 
-        public static IEnumerable<RealmResponse> ToResponse(this IEnumerable<RealmEntity> results)
+        public static IEnumerable<RealmResponse> ToResponse(this IEnumerable<RealmEntity> results, string issuer)
         {
             return results.Select(r => new RealmResponse(
+                issuer.AppendPathSegment("realms").AppendPathSegment(r.Realm),
                 r.Realm,
                 r.DisplayName ?? string.Empty,
                 r.Enabled

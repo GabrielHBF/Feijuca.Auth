@@ -5,12 +5,13 @@ using MediatR;
 
 namespace Feijuca.Auth.Application.Queries.Realm
 {
-    internal class GetRealmsQueryHandler(IRealmRepository _realmRepository) : IRequestHandler<GetRealmsQuery, IEnumerable<RealmResponse>>
+    public class GetRealmsQueryHandler(IRealmRepository _realmRepository, IConfigRepository configRepository) : IRequestHandler<GetRealmsQuery, IEnumerable<RealmResponse>>
     {
         public async Task<IEnumerable<RealmResponse>> Handle(GetRealmsQuery request, CancellationToken cancellationToken)
         {
+            var config = await configRepository.GetConfigAsync();
             var realms = await _realmRepository.GetAllAsync(cancellationToken);
-            return realms.ToResponse();
+            return realms.ToResponse(config.ServerSettings.Url);
         }
     }
 }
