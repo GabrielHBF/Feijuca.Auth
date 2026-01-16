@@ -4,9 +4,6 @@ namespace Feijuca.Auth.Models;
 
 public class Realm
 {
-    [JsonIgnore]
-    public bool DefaultSwaggerTokenGeneration { get; set; }
-
     public string? Name { get; set; }
 
     public string? Issuer { get; set; }
