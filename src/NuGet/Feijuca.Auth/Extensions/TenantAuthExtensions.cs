@@ -1,4 +1,5 @@
-﻿using Feijuca.Auth.Models;
+﻿using Feijuca.Auth.Http.Client;
+using Feijuca.Auth.Models;
 using Feijuca.Auth.Providers;
 using Keycloak.AuthServices.Authentication;
 using Keycloak.AuthServices.Authorization;
@@ -12,7 +13,7 @@ namespace Feijuca.Auth.Extensions;
 
 public static class TenantAuthExtensions
 {
-    public static IServiceCollection AddApiAuthentication(this IServiceCollection services, IEnumerable<Realm> realms)
+    public static IServiceCollection AddApiAuthentication(this IServiceCollection services, IEnumerable<Realm>? realms = null)
     {
         services.AddHttpContextAccessor();
         services.AddKeyCloakAuth(realms);
@@ -21,9 +22,12 @@ public static class TenantAuthExtensions
     }
 
     public static IServiceCollection AddKeyCloakAuth(this IServiceCollection services,
-        IEnumerable<Realm> realms,
+        IEnumerable<Realm>? realms = null,
         IEnumerable<Policy>? policies = null)
     {
+        var provider = services.BuildServiceProvider();
+        var authClient = provider.GetRequiredService<IFeijucaAuthClient>();
+
         services
             .AddSingleton<JwtSecurityTokenHandler>()
             .AddScoped<ITenantProvider, TenanatProvider>()
@@ -37,7 +41,7 @@ public static class TenantAuthExtensions
                 {
                     options.Events = new JwtBearerEvents
                     {
-                        OnMessageReceived = OnMessageReceived(realms),
+                        OnMessageReceived = OnMessageReceived(realms, authClient),
                         OnAuthenticationFailed = OnAuthenticationFailed,
                         OnChallenge = OnChallenge
                     };
@@ -48,7 +52,7 @@ public static class TenantAuthExtensions
         return services;
     }
 
-    private static Func<MessageReceivedContext, Task> OnMessageReceived(IEnumerable<Realm> realms)
+    private static Func<MessageReceivedContext, Task> OnMessageReceived(IEnumerable<Realm>? realms = null, IFeijucaAuthClient authClient)
     {
         return async context =>
         {
@@ -78,8 +82,23 @@ public static class TenantAuthExtensions
                     return;
                 }
 
+                IEnumerable<Realm> resolvedRealms;
+                if (realms is not null && realms.Any())
+                {
+                    resolvedRealms = realms;
+                }
+                else
+                {
+                    var tenants = await authClient.GetRealmsAsync(token, CancellationToken.None);
+                    resolvedRealms = tenants.Data.Select(realm => new Realm
+                    {
+                        Name = realm.Realm,
+                        Issuer = string.Empty //realm.Issuer
+                    });
+                }
+
                 var tenantName = tokenInfos.Claims.FirstOrDefault(c => c.Type == "tenant")?.Value;
-                var tenantRealm = realms.FirstOrDefault(realm => realm.Name!.Contains(tenantName!, StringComparison.OrdinalIgnoreCase));
+                var tenantRealm = resolvedRealms.FirstOrDefault(realm => realm.Name!.Contains(tenantName!, StringComparison.OrdinalIgnoreCase));
 
                 if (ValidateRealm(context, tenantRealm).Equals(false))
                 {
