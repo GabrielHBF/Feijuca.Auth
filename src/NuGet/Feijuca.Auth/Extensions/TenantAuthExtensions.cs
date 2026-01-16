@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 
 namespace Feijuca.Auth.Extensions;
 
@@ -24,9 +23,6 @@ public static class TenantAuthExtensions
 
     public static IServiceCollection AddKeyCloakAuth(this IServiceCollection services, IEnumerable<Realm>? realms = null)
     {
-        var provider = services.BuildServiceProvider();
-        var authClient = provider.GetRequiredService<IFeijucaAuthClient>();
-
         services
             .AddSingleton<JwtSecurityTokenHandler>()
             .AddScoped<ITenantProvider, TenanatProvider>()
@@ -40,7 +36,7 @@ public static class TenantAuthExtensions
                 {
                     options.Events = new JwtBearerEvents
                     {
-                        OnMessageReceived = OnMessageReceived(authClient, realms),
+                        OnMessageReceived = OnMessageReceived(services, realms),
                         OnAuthenticationFailed = OnAuthenticationFailed,
                         OnChallenge = OnChallenge
                     };
@@ -51,7 +47,7 @@ public static class TenantAuthExtensions
         return services;
     }
 
-    private static Func<MessageReceivedContext, Task> OnMessageReceived(IFeijucaAuthClient authClient, IEnumerable<Realm>? realms = null)
+    private static Func<MessageReceivedContext, Task> OnMessageReceived(IServiceCollection services, IEnumerable<Realm>? realms = null)
     {
         return async context =>
         {
@@ -87,8 +83,9 @@ public static class TenantAuthExtensions
                 }
                 else
                 {
+                    var provider = services.BuildServiceProvider();
+                    var authClient = provider.GetRequiredService<IFeijucaAuthClient>();
                     var tenants = await authClient.GetRealmsAsync(token, CancellationToken.None);
-
                     resolvedRealms = tenants.Data.Select(realm => new Realm
                     {
                         Name = realm.Realm,
