@@ -23,16 +23,13 @@ You need to define an array of realms that your application will support.
 Here’s a minimal configuration example:
 
 ```json
-"Realms": [
-  {
-    "Name": "smartconsig",
-    "Issuer": "https://keycloak-instance-url/realms/your-created-realm"
+  "FeijucaApiSettings": {
+    "Url": "https://apis-feijuca-production.ul0sru.easypanel.host"
   }
 ]
 ```
 
-- **Name**: An internal identifier for your realm.
-- **Issuer**: The full URL to your Keycloak realm’s issuer, typically `https://<host>/realms/<realm-name>`.
+- **Url**: The URL where Feijuca.Auth.Api is running.
 
 This section is required and will be passed to **Feijuca** when initializing the authentication layer.
 
@@ -42,10 +39,21 @@ This section is required and will be passed to **Feijuca** when initializing the
 
 Now that your `appsettings.json` is configured, it's time to enable Feijuca in your application.
 
-Inside your `Program.cs`, register the authentication services by calling the following extension method:
+
+Inside your `Program.cs`, configure and the HttpClient regarding to the Feijuca.Auth API calls. You have only to inform the address.
 
 ```csharp
-builder.Services.AddApiAuthentication(applicationSettings.Realms);
+services.AddHttpClient<IFeijucaAuthClient, FeijucaAuthClient>(client =>
+{
+	client.DefaultRequestHeaders.Add("Tenant", "smartconsig");
+	client.BaseAddress = new Uri(settings.FeijucaAuthConfiguration.Url); // Get the URL from your appsettings.json
+})
+```
+
+After, register the authentication services by calling the following extension method:
+
+```csharp
+builder.Services.AddApiAuthentication();
 ```
 
 This method will:
@@ -54,31 +62,6 @@ This method will:
 - Load your configured realms and validate tokens issued by them when it arrives to your api.
 
 > 💡 I recommend you create a class called Settings and map the appsettings.json on this class, you can merge your personal appsettings config and also add the Realm array that is required for Feijuca. For example:
-
-```json
-{
-  "Settings": {
-    "Realms": [
-      {
-        "Name": "smartconsig",
-        "Issuer": "https://services-keycloak.ul0sru.easypanel.host/realms/smartconsig"
-      }
-    ]
-  }
-}
-
-```
-
-```csharp
-public class Settings
-{
-    public required IEnumerable<Realm> Realms { get; set; }
-}
-```
-
-```csharp
-var applicationSettings = builder.Configuration.GetSection("Settings").Get<Settings>();
-```
 
 ---
 
