@@ -8,7 +8,9 @@ namespace Feijuca.Auth.Http.Client
 {
     public class FeijucaAuthClient(HttpClient httpClient) : BaseHttpClient(httpClient), IFeijucaAuthClient
     {
-        public async Task<Result<TokenDetailsResponse>> AuthenticateUserAsync(string username, string password, string tenant, CancellationToken cancellationToken)
+        private readonly HttpClient _httpClient = httpClient;
+
+        public async Task<Result<TokenDetailsResponse>> AuthenticateUserAsync(string tenant, string username, string password, CancellationToken cancellationToken)
         {
             IncludeTenantHeader(tenant);
 
@@ -22,7 +24,7 @@ namespace Feijuca.Auth.Http.Client
             return Result<TokenDetailsResponse>.Success(result);
         }
 
-        public async Task<Result<UserResponse>> GetUserAsync(string userame, string jwtToken, string tenant, CancellationToken cancellationToken)
+        public async Task<Result<UserResponse>> GetUserAsync(string tenant, string userame, string jwtToken, CancellationToken cancellationToken)
         {
             IncludeTenantHeader(tenant);
 
@@ -39,7 +41,7 @@ namespace Feijuca.Auth.Http.Client
             return Result<UserResponse>.Success(user!);
         }
 
-        public async Task<Result<PagedResult<UserResponse>>> GetUsersAsync(int maxUsers, string jwtToken, string tenant, CancellationToken cancellationToken)
+        public async Task<Result<PagedResult<UserResponse>>> GetUsersAsync(string tenant, int maxUsers, string jwtToken, CancellationToken cancellationToken)
         {
             IncludeTenantHeader(tenant);
 
@@ -54,7 +56,7 @@ namespace Feijuca.Auth.Http.Client
             return Result<PagedResult<UserResponse>>.Success(result);
         }
 
-        public async Task<Result<IEnumerable<GroupResponse>>> GetGroupsAsync(string jwtToken, string tenant, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<GroupResponse>>> GetGroupsAsync(string tenant, string jwtToken, CancellationToken cancellationToken)
         {
             IncludeTenantHeader(tenant);
 
@@ -84,12 +86,12 @@ namespace Feijuca.Auth.Http.Client
         {
             if (!string.IsNullOrEmpty(tenant))
             {
-                if (httpClient.DefaultRequestHeaders.Contains("Tenant"))
+                if (_httpClient.DefaultRequestHeaders.Contains("Tenant"))
                 {
-                    httpClient.DefaultRequestHeaders.Remove("Tenant");
+                    _httpClient.DefaultRequestHeaders.Remove("Tenant");
                 }
 
-                httpClient.DefaultRequestHeaders.Add("Tenant", tenant);
+                _httpClient.DefaultRequestHeaders.Add("Tenant", tenant);
             }
         }
     }

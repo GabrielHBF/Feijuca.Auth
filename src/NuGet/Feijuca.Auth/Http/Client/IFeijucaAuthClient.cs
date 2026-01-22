@@ -6,9 +6,9 @@ namespace Feijuca.Auth.Http.Client;
 
 public interface IFeijucaAuthClient
 {
-    Task<Result<TokenDetailsResponse>> AuthenticateUserAsync(string username, string password, string tenant, CancellationToken cancellationToken);
-    Task<Result<PagedResult<UserResponse>>> GetUsersAsync(int maxUsers, string jwtToken, string tenant, CancellationToken cancellationToken);
-    Task<Result<UserResponse>> GetUserAsync(string userame, string jwtToken, string tenant, CancellationToken cancellationToken);
-    Task<Result<IEnumerable<GroupResponse>>> GetGroupsAsync(string jwtToken, string tenant, CancellationToken cancellationToken);
+    Task<Result<TokenDetailsResponse>> AuthenticateUserAsync(string tenant, string username, string password, CancellationToken cancellationToken);
+    Task<Result<PagedResult<UserResponse>>> GetUsersAsync(string tenant, int maxUsers, string jwtToken, CancellationToken cancellationToken);
+    Task<Result<UserResponse>> GetUserAsync(string tenant, string userame, string jwtToken, CancellationToken cancellationToken);
+    Task<Result<IEnumerable<GroupResponse>>> GetGroupsAsync(string tenant, string jwtToken, CancellationToken cancellationToken);
     Task<Result<IEnumerable<RealmResponse>>> GetRealmsAsync(string jwtToken, CancellationToken cancellationToken);
 }
