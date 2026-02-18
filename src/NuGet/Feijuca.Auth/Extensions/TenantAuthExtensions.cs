@@ -1,5 +1,4 @@
-﻿using Feijuca.Auth.Http.Client;
-using Feijuca.Auth.Models;
+﻿using Feijuca.Auth.Models;
 using Feijuca.Auth.Providers;
 using Keycloak.AuthServices.Authentication;
 using Keycloak.AuthServices.Authorization;
@@ -76,37 +75,7 @@ public static class TenantAuthExtensions
                     return;
                 }
 
-                IEnumerable<Realm> resolvedRealms;
-                if (realms?.Any() ?? false)
-                {
-                    resolvedRealms = realms;
-                }
-                else
-                {
-                    var provider = services.BuildServiceProvider();
-                    var authClient = provider.GetRequiredService<IFeijucaAuthClient>();
-                    var tenants = await authClient.GetRealmsAsync(token, CancellationToken.None);
-                    resolvedRealms = tenants.Data.Select(realm => new Realm
-                    {
-                        Name = realm.Realm,
-                        Issuer = realm.Issuer
-                    });
-                }
-
-                var tenantName = tokenInfos.Claims.FirstOrDefault(c => c.Type == "tenant")?.Value;
-                var tenantRealm = resolvedRealms.FirstOrDefault(realm => realm.Name!.Contains(tenantName!, StringComparison.OrdinalIgnoreCase));
-
-                if (ValidateRealm(context, tenantRealm).Equals(false))
-                {
-                    return;
-                }
-
                 if (IsTokenValidAudience(context, tokenInfos).Equals(false))
-                {
-                    return;
-                }
-
-                if (ValidateIssuer(context, token, tenantRealm!.Issuer!).Equals(false))
                 {
                     return;
                 }
