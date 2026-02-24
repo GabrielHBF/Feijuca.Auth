@@ -19,11 +19,11 @@ namespace Feijuca.Auth.Infra.CrossCutting.Extensions
                     .AddMongoDb(
                         clientFactory: sp => sp.GetRequiredService<MongoDB.Driver.IMongoClient>(),
                         name: "mongoDB",
-                        tags: ["db", "mongo"])
-                    .AddUrlGroup(
-                        keycloakHealthUri,
-                        name: "keycloak",
-                        tags: ["keycloak", "auth"]);
+                        tags: ["db", "mongo"]);
+                    // .AddUrlGroup(
+                    //    keycloakHealthUri,
+                    //    name: "keycloak",
+                    //    tags: ["keycloak", "auth"]);
             }
 
             return services;
