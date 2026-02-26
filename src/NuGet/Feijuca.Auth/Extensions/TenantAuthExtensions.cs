@@ -80,7 +80,7 @@ public static class TenantAuthExtensions
                     return;
                 }
 
-                var tokenValidationParameters = await GetTokenValidationParameters(token);
+                var tokenValidationParameters = await GetTokenValidationParameters(token, services);
                 var claims = new JwtSecurityTokenHandler().ValidateToken(token, tokenValidationParameters, out var _);
 
                 context.Principal = claims;
@@ -195,7 +195,7 @@ public static class TenantAuthExtensions
         return true;
     }
 
-    private static async Task<TokenValidationParameters> GetTokenValidationParameters(string jwtToken)
+    private static async Task<TokenValidationParameters> GetTokenValidationParameters(string jwtToken, IServiceCollection services)
     {
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(jwtToken);
@@ -203,7 +203,11 @@ public static class TenantAuthExtensions
         var issuer = token.Issuer;
         var audience = token.Audiences.FirstOrDefault();
 
-        using var httpClient = new HttpClient();
+        var provider = services.BuildServiceProvider();
+        var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+
+        var httpClient = httpClientFactory.CreateClient("KeycloakClient");
+
         var jwksUrl = $"{issuer}/protocol/openid-connect/certs";
         var jwks = await httpClient.GetStringAsync(jwksUrl);
         var jsonWebKeySet = new JsonWebKeySet(jwks);
