@@ -203,11 +203,6 @@ public static class TenantAuthExtensions
         var issuer = token.Issuer;
         var audience = token.Audiences.FirstOrDefault();
 
-        using var httpClient = new HttpClient();
-        var jwksUrl = $"{issuer}/protocol/openid-connect/certs";
-        var jwks = await httpClient.GetStringAsync(jwksUrl);
-        var jsonWebKeySet = new JsonWebKeySet(jwks);
-
         return new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -215,8 +210,8 @@ public static class TenantAuthExtensions
             ValidateAudience = true,
             ValidAudience = audience,
             ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKeys = jsonWebKeySet.Keys
+            ValidateIssuerSigningKey = false,
+            SignatureValidator = (token, parameters) => new JwtSecurityToken(token)
         };
     }
 
