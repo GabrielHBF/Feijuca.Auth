@@ -25,8 +25,9 @@ public static class TenantAuthExtensions
         services
             .AddSingleton<JwtSecurityTokenHandler>()
             .AddScoped<ITenantProvider, TenanatProvider>()
+            .AddSingleton<IOpenIdConfigurationProvider, OpenIdConfigurationProvider>()
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddKeycloakWebApi(
+            .AddKeycloakWebApi( 
                 options =>
                 {
                     options.Resource = "feijuca-auth-api";
@@ -80,7 +81,9 @@ public static class TenantAuthExtensions
                     return;
                 }
 
-                var tokenValidationParameters = await GetTokenValidationParameters(token);
+                var openIdProvaider = context.HttpContext.RequestServices.GetRequiredService<IOpenIdConfigurationProvider>();
+
+                var tokenValidationParameters = await GetTokenValidationParameters(token, openIdProvaider);
                 var claims = new JwtSecurityTokenHandler().ValidateToken(token, tokenValidationParameters, out var _);
 
                 context.Principal = claims;
@@ -195,13 +198,15 @@ public static class TenantAuthExtensions
         return true;
     }
 
-    private static async Task<TokenValidationParameters> GetTokenValidationParameters(string jwtToken)
+    private static async Task<TokenValidationParameters> GetTokenValidationParameters(string jwtToken, IOpenIdConfigurationProvider openIdProvaider)
     {
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(jwtToken);
 
         var issuer = token.Issuer;
         var audience = token.Audiences.FirstOrDefault();
+
+        var cacheKeys = await openIdProvaider.GetAsync(issuer, CancellationToken.None);
 
         return new TokenValidationParameters
         {
@@ -210,8 +215,8 @@ public static class TenantAuthExtensions
             ValidateAudience = true,
             ValidAudience = audience,
             ValidateLifetime = true,
-            ValidateIssuerSigningKey = false,
-            SignatureValidator = (token, parameters) => new JwtSecurityToken(token)
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKeys = cacheKeys.SigningKeys
         };
     }
 
@@ -234,3 +239,4 @@ public static class TenantAuthExtensions
         }
     }
 }
+ 
