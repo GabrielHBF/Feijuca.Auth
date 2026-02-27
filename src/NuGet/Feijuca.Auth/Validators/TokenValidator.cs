@@ -5,7 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace Feijuca.Auth.Validators;
 
-public static class TenantTokenValidator
+public static class TokenValidator
 {
     public static async Task ProcessTokenValidationAsync(MessageReceivedContext context, string token, IOpenIdConfigurationProvider openIdProvider)
     {
@@ -98,6 +98,7 @@ public static class TenantTokenValidator
     {
         context.Response.StatusCode = statusCode;
         context.HttpContext.Items["AuthError"] = message;
+        context.HttpContext.Items["AuthError"] = statusCode;
         context.Fail(message);
     }
 }

@@ -73,7 +73,7 @@ public static class TenantAuthExtensions
 
             var openIdProvider = context.HttpContext.RequestServices.GetRequiredService<IOpenIdConfigurationProvider>();
 
-            await TenantTokenValidator.ProcessTokenValidationAsync(context, token, openIdProvider);
+            await TokenValidator.ProcessTokenValidationAsync(context, token, openIdProvider);
         };
     }
 
