@@ -98,7 +98,7 @@ public static class TokenValidator
     {
         context.Response.StatusCode = statusCode;
         context.HttpContext.Items["AuthError"] = message;
-        context.HttpContext.Items["AuthError"] = statusCode;
+        context.HttpContext.Items["AuthStatusCode"] = statusCode;
         context.Fail(message);
     }
 }
