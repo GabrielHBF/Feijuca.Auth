@@ -1,3 +1,4 @@
+using Feijuca.Auth.Api.Tests.Extensions;
 using Feijuca.Auth.Api.Tests.Models;
 using Feijuca.Auth.Extensions;
 using Feijuca.Auth.Http.Client;
@@ -16,12 +17,13 @@ builder.Services.AddControllers();
 builder.Services
     .AddApiAuthentication()
     .AddEndpointsApiExplorer()
+    .AddApiSpecification()
     .AddOpenApi("v1");
 
 var app = builder.Build();
 
 app.MapOpenApi();
-app.MapScalarApiReference();
+app.UseSpecification();
 
 app.UseHttpsRedirection();
 app.MapControllers();

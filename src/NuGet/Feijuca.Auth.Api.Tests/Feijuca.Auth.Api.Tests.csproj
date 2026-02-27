@@ -8,20 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Extensions\**" />
     <Compile Remove="Filters\**" />
-    <Content Remove="Extensions\**" />
     <Content Remove="Filters\**" />
-    <EmbeddedResource Remove="Extensions\**" />
     <EmbeddedResource Remove="Filters\**" />
-    <None Remove="Extensions\**" />
     <None Remove="Filters\**" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Flurl" Version="4.0.0" />
     <PackageReference Include="Mattioli.Configurations" Version="1.66.1" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.12.8" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.12.48" />
+    <PackageReference Include="Scalar.AspNetCore.Microsoft" Version="2.12.48" />
   </ItemGroup>
 
   <ItemGroup>
