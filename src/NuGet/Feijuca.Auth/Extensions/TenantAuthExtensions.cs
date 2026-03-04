@@ -27,6 +27,7 @@ public static class TenantAuthExtensions
         var keycloakBaseUrl = feijucaAuthConfiguration.Url.TrimEnd('/');
 
         services
+            .AddSingleton<IOidcConfigManagerCache, OidcConfigManagerCache>()
             .AddSingleton<JwtSecurityTokenHandler>()
             .AddScoped<ITenantProvider, TenanatProvider>()
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -102,7 +103,6 @@ public static class TenantAuthExtensions
                 var token = tokenJwt.Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase).Trim();
 
                 var handler = new JwtSecurityTokenHandler();
-
                 if (!handler.CanReadToken(token))
                 {
                     context.Fail("Invalid token format");
@@ -110,7 +110,6 @@ public static class TenantAuthExtensions
                 }
 
                 var jwt = handler.ReadJwtToken(token);
-
                 var issuer = jwt.Issuer?.Trim();
 
                 if (string.IsNullOrWhiteSpace(issuer))
@@ -121,20 +120,11 @@ public static class TenantAuthExtensions
 
                 var metadataAddress = issuer.TrimEnd('/') + "/.well-known/openid-configuration";
 
-                context.Options.MetadataAddress = metadataAddress;
+                var cache = context.HttpContext.RequestServices.GetRequiredService<IOidcConfigManagerCache>();
 
+                context.Options.MetadataAddress = metadataAddress;
                 context.Options.ConfigurationManager =
-                    new ConfigurationManager<OpenIdConnectConfiguration>(
-                        metadataAddress,
-                        new OpenIdConnectConfigurationRetriever(),
-                        new HttpDocumentRetriever
-                        {
-                            RequireHttps = context.Options.RequireHttpsMetadata
-                        })
-                    {
-                        AutomaticRefreshInterval = TimeSpan.FromHours(12),
-                        RefreshInterval = TimeSpan.FromMinutes(5)
-                    };
+                    cache.Get(metadataAddress, context.Options.RequireHttpsMetadata);
 
                 return Task.CompletedTask;
             }
