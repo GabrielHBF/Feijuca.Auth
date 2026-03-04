@@ -14,7 +14,7 @@ builder.Services.AddHttpClient<IFeijucaAuthClient, FeijucaAuthClient>(client =>
 
 builder.Services.AddControllers();
 builder.Services
-    .AddApiAuthentication()
+    .AddApiAuthentication(settings.Feijuca)
     .AddEndpointsApiExplorer()
     .AddOpenApi("v1");
 

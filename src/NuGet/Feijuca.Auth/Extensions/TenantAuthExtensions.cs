@@ -5,6 +5,8 @@ using Keycloak.AuthServices.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -12,16 +14,18 @@ namespace Feijuca.Auth.Extensions;
 
 public static class TenantAuthExtensions
 {
-    public static IServiceCollection AddApiAuthentication(this IServiceCollection services, IEnumerable<Realm>? realms = null)
+    public static IServiceCollection AddApiAuthentication(this IServiceCollection services, FeijucaAuthConfiguration feijucaAuthConfiguration)
     {
         services.AddHttpContextAccessor();
-        services.AddKeyCloakAuth(realms);
+        services.AddKeyCloakAuth(feijucaAuthConfiguration);
 
         return services;
     }
 
-    public static IServiceCollection AddKeyCloakAuth(this IServiceCollection services, IEnumerable<Realm>? realms = null)
+    public static IServiceCollection AddKeyCloakAuth(this IServiceCollection services, FeijucaAuthConfiguration feijucaAuthConfiguration)
     {
+        var keycloakBaseUrl = feijucaAuthConfiguration.Url.TrimEnd('/');
+
         services
             .AddSingleton<JwtSecurityTokenHandler>()
             .AddScoped<ITenantProvider, TenanatProvider>()
@@ -33,9 +37,42 @@ public static class TenantAuthExtensions
                 },
                 options =>
                 {
+                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+
+                        ValidAudience = "feijuca-auth-api",
+                        ClockSkew = TimeSpan.FromMinutes(2),
+
+                        IssuerValidator = (issuer, securityToken, validationParameters) =>
+                        {
+                            if (string.IsNullOrWhiteSpace(issuer))
+                                throw new SecurityTokenInvalidIssuerException("Missing issuer");
+
+                            if (!issuer.StartsWith(keycloakBaseUrl + "/", StringComparison.OrdinalIgnoreCase))
+                                throw new SecurityTokenInvalidIssuerException("Issuer outside configured Keycloak base url");
+
+                            if (!Uri.TryCreate(issuer, UriKind.Absolute, out var uri) ||
+                                !uri.AbsolutePath.StartsWith("/realms/", StringComparison.OrdinalIgnoreCase) ||
+                                string.IsNullOrEmpty(uri.AbsolutePath.Substring("/realms/".Length)))
+                            {
+                                throw new SecurityTokenInvalidIssuerException("Invalid issuer path");
+                            }
+
+                            if (!string.IsNullOrEmpty(uri.Query) || !string.IsNullOrEmpty(uri.Fragment))
+                                throw new SecurityTokenInvalidIssuerException("Invalid issuer");
+
+                            return issuer;
+                        }
+                    };
+
                     options.Events = new JwtBearerEvents
                     {
-                        OnMessageReceived = OnMessageReceived(services, realms),
+                        OnMessageReceived = OnMessageReceived(),
                         OnAuthenticationFailed = OnAuthenticationFailed,
                         OnChallenge = OnChallenge
                     };
@@ -46,60 +83,80 @@ public static class TenantAuthExtensions
         return services;
     }
 
-    private static Func<MessageReceivedContext, Task> OnMessageReceived(IServiceCollection services, IEnumerable<Realm>? realms = null)
+    private static Func<MessageReceivedContext, Task> OnMessageReceived()
     {
-        return async context =>
+        return context =>
         {
             try
             {
-                var endpoint = context.HttpContext.GetEndpoint();
-                var hasAuthorize = endpoint?.Metadata?.GetMetadata<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>() != null;
-                if (!hasAuthorize)
+                var tokenJwt =
+                    context.Request.Headers.Authorization.FirstOrDefault()
+                    ?? context.Request.Query["access_token"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(tokenJwt))
                 {
-                    context.NoResult();
-                    return;
+                    context.Fail("Missing token");
+                    return Task.CompletedTask;
                 }
 
-                var tokenJwt = context.Request.Headers.Authorization.FirstOrDefault() ?? context.Request.Query["access_token"].FirstOrDefault();
+                var token = tokenJwt.Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase).Trim();
 
-                if (IsTokenValid(context, tokenJwt).Equals(false))
+                var handler = new JwtSecurityTokenHandler();
+
+                if (!handler.CanReadToken(token))
                 {
-                    return;
+                    context.Fail("Invalid token format");
+                    return Task.CompletedTask;
                 }
 
-                var token = tokenJwt!.Replace("Bearer ", "");
-                var tokenInfos = new JwtSecurityTokenHandler().ReadJwtToken(token);
+                var jwt = handler.ReadJwtToken(token);
 
-                if (IsTokenExpirationValid(context, tokenInfos).Equals(false))
+                var issuer = jwt.Issuer?.Trim();
+
+                if (string.IsNullOrWhiteSpace(issuer))
                 {
-                    return;
+                    context.Fail("Missing issuer");
+                    return Task.CompletedTask;
                 }
 
-                if (IsTokenValidAudience(context, tokenInfos).Equals(false))
-                {
-                    return;
-                }
+                var metadataAddress = issuer.TrimEnd('/') + "/.well-known/openid-configuration";
 
-                var tokenValidationParameters = await GetTokenValidationParameters(token);
-                var claims = new JwtSecurityTokenHandler().ValidateToken(token, tokenValidationParameters, out var _);
+                context.Options.MetadataAddress = metadataAddress;
 
-                context.Principal = claims;
-                context.Success();
+                context.Options.ConfigurationManager =
+                    new ConfigurationManager<OpenIdConnectConfiguration>(
+                        metadataAddress,
+                        new OpenIdConnectConfigurationRetriever(),
+                        new HttpDocumentRetriever
+                        {
+                            RequireHttps = context.Options.RequireHttpsMetadata
+                        })
+                    {
+                        AutomaticRefreshInterval = TimeSpan.FromHours(12),
+                        RefreshInterval = TimeSpan.FromMinutes(5)
+                    };
+
+                return Task.CompletedTask;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                context.Response.StatusCode = 500;
-                context.HttpContext.Items["AuthError"] = $"Authentication error: {e.Message}";
-                await context.Response.WriteAsJsonAsync(new { error = e.Message });
-                context.Fail(e.Message);
+                context.HttpContext.Items["AuthError"] = $"Authentication setup failed: {ex.Message}";
+                context.HttpContext.Items["AuthStatusCode"] = 401;
+                context.Fail($"Authentication setup failed: {ex.Message}");
+                return Task.CompletedTask;
             }
         };
     }
 
     private static Task OnAuthenticationFailed(AuthenticationFailedContext context)
     {
-        var errorMessage = context.HttpContext.Items["AuthError"] as string ?? "Authentication failed!";
+        var errorMessage =
+            context.HttpContext.Items["AuthError"] as string
+            ?? context.Exception?.Message
+            ?? "Authentication failed!";
+
         var statusCode = context.HttpContext.Items["AuthStatusCode"] as int? ?? 401;
+
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
         return context.Response.WriteAsJsonAsync(new { error = errorMessage });
@@ -109,110 +166,19 @@ public static class TenantAuthExtensions
     {
         if (!context.Response.HasStarted)
         {
-            var errorMessage = context.HttpContext.Items["AuthError"] as string ?? "Authentication failed!";
+            var errorMessage =
+                context.HttpContext.Items["AuthError"] as string
+                ?? context.ErrorDescription
+                ?? "Authentication failed!";
+
             var statusCode = context.HttpContext.Items["AuthStatusCode"] as int? ?? 401;
+
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new { Message = errorMessage });
         }
 
         context.HandleResponse();
-    }
-
-    private static bool IsTokenValid(MessageReceivedContext context, string? tokenJwt)
-    {
-        if (string.IsNullOrEmpty(tokenJwt))
-        {
-            context.HttpContext.Items["AuthError"] = "Invalid JWT token!";
-            context.HttpContext.Items["AuthStatusCode"] = 401;
-            context.Fail("Invalid JWT token!");
-            return false;
-        }
-
-        return true;
-    }
-
-    private static bool IsTokenExpirationValid(MessageReceivedContext context, JwtSecurityToken tokenInfos)
-    {
-        var expirationClaim = tokenInfos.Claims.FirstOrDefault(c => c.Type == "exp")?.Value;
-        if (expirationClaim != null && long.TryParse(expirationClaim, out var expirationUnix))
-        {
-            var expirationDate = DateTimeOffset.FromUnixTimeSeconds(expirationUnix).UtcDateTime;
-            if (DateTime.UtcNow >= expirationDate)
-            {
-                context.Response.StatusCode = 401;
-                context.HttpContext.Items["AuthError"] = "Token has expired.";
-                context.Fail("Token has expired.");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static bool ValidateRealm(MessageReceivedContext context, Realm? tenantRealm)
-    {
-        if (tenantRealm == null)
-        {
-            context.HttpContext.Items["AuthError"] = "Invalid realm config provided, please verify!";
-            context.HttpContext.Items["AuthStatusCode"] = 401;
-            context.Fail("Invalid realm config provided, please verify!");
-            return false;
-        }
-        return true;
-    }
-
-    private static bool IsTokenValidAudience(MessageReceivedContext context, JwtSecurityToken tokenInfos)
-    {
-        var audience = tokenInfos.Claims.FirstOrDefault(c => c.Type == "aud")?.Value;
-        if (audience != "feijuca-auth-api")
-        {
-            context.HttpContext.Items["AuthError"] = "Invalid audience, please configure an audience mapper on your realm!";
-            context.HttpContext.Items["AuthStatusCode"] = 403;
-            context.Fail("Invalid audience!");
-            return false;
-        }
-
-        return true;
-    }
-
-
-    private static bool ValidateIssuer(MessageReceivedContext context, string jwtToken, string configIssuer)
-    {
-        var handler = new JwtSecurityTokenHandler();
-        var token = handler.ReadJwtToken(jwtToken);
-
-        var issuer = token.Issuer;
-
-        if (configIssuer != issuer)
-        {
-            context.HttpContext.Items["AuthError"] = "Invalid issuer, please configure an issuer mapper on your realm!";
-            context.HttpContext.Items["AuthStatusCode"] = 403;
-            context.Fail("Invalid issuer!");
-            return false;
-        }
-
-        return true;
-    }
-
-    private static async Task<TokenValidationParameters> GetTokenValidationParameters(string jwtToken)
-    {
-        var handler = new JwtSecurityTokenHandler();
-        var token = handler.ReadJwtToken(jwtToken);
-
-        var issuer = token.Issuer;
-        var audience = token.Audiences.FirstOrDefault();
-
-        return new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = issuer,
-            ValidateAudience = true,
-            ValidAudience = audience,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = false,
-            SignatureValidator = (token, parameters) => new JwtSecurityToken(token)
-        };
     }
 
     private static void ConfigureAuthorization(IServiceCollection services, IEnumerable<Policy>? policySettings)
