@@ -9,7 +9,7 @@ var settings = builder.Configuration.GetSection("Settings").Get<Settings>()!;
 
 builder.Services.AddHttpClient<IFeijucaAuthClient, FeijucaAuthClient>(client =>
 {
-    client.BaseAddress = new Uri(settings.Feijuca.Url);
+    client.BaseAddress = new Uri(settings.Feijuca.ApiUrl);
 });
 
 builder.Services.AddControllers();

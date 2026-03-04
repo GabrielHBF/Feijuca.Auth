@@ -24,7 +24,7 @@ public static class TenantAuthExtensions
 
     public static IServiceCollection AddKeyCloakAuth(this IServiceCollection services, FeijucaAuthConfiguration feijucaAuthConfiguration)
     {
-        var keycloakBaseUrl = feijucaAuthConfiguration.Url.TrimEnd('/');
+        var keycloakBaseUrl = feijucaAuthConfiguration.KeycloakUrl.TrimEnd('/');
 
         services
             .AddSingleton<IOidcConfigManagerCache, OidcConfigManagerCache>()
