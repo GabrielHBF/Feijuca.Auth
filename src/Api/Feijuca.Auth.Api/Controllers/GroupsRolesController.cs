@@ -52,19 +52,18 @@ namespace Feijuca.Auth.Api.Controllers
         /// otherwise, a 400 Bad Request status code with an error message.
         /// </returns>
         /// <param name="groupid">The unique identifier of the group from which the role will be removed.</param>
-        /// <param name="roleid">The unique identifier of the role to be removed from the group.</param>
+        /// <param name="deleteRoleToGroup">An object of type <see cref="T:Feijuca.Auth.Common.Models.RemoveClientRoleToGroupRequest"/> containing the details of the role to be deleted to the group.</param>
         /// <param name="cancellationToken">A <see cref="T:System.Threading.CancellationToken"/> used to observe cancellation requests for the operation.</param>
-        [HttpDelete("{groupid}/role/{roleid}", Name = nameof(RemoveRoleFromGroup))]
+        [HttpDelete("{groupid}/role", Name = nameof(RemoveRoleFromGroup))]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [RequiredRole("Feijuca.ApiWriter")]
         public async Task<IActionResult> RemoveRoleFromGroup(
             [FromRoute] string groupid,
-            [FromRoute] Guid roleid,
+            [FromBody] RemoveClientRoleToGroupRequest deleteRoleToGroup,
             CancellationToken cancellationToken)
         {
-            var roleToGroupRequest = new AddClientRoleToGroupRequest(groupid, roleid);
-            var result = await commandMediator.SendAsync(new RemoveRoleFromGroupCommand(groupid, roleToGroupRequest), cancellationToken);
+            var result = await commandMediator.SendAsync(new RemoveRoleFromGroupCommand(groupid, deleteRoleToGroup), cancellationToken);
 
             if (result.IsSuccess)
             {

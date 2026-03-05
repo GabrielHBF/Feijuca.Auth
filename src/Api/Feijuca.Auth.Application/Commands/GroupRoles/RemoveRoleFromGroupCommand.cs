@@ -4,5 +4,5 @@ using LiteBus.Commands.Abstractions;
 
 namespace Feijuca.Auth.Application.Commands.GroupRoles
 {
-    public record RemoveRoleFromGroupCommand(string GroupId, AddClientRoleToGroupRequest RemoveRoleFromGroupRequest) : ICommand<Result<bool>>;
+    public record RemoveRoleFromGroupCommand(string GroupId, RemoveClientRoleToGroupRequest RemoveRoleFromGroupRequest) : ICommand<Result<bool>>;
 }
