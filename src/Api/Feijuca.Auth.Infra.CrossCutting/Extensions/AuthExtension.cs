@@ -20,7 +20,7 @@ public static class AuthExtension
 
         if (serverSettings is not null)
         {
-            services.AddKeyCloakAuth(serverSettings.Realms ?? []);
+            services.AddKeyCloakAuth(new Auth.Models.FeijucaAuthConfiguration() { KeycloakUrl = serverSettings.ServerSettings.Url, ApiUrl = "" });
 
             return services;
         }
