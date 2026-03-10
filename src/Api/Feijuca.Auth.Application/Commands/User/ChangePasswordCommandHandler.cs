@@ -10,7 +10,7 @@ namespace Feijuca.Auth.Application.Commands.User
         private readonly IUserRepository _userRepository = userRepository;
         public async Task<Result<bool>> HandleAsync(ChangePasswordCommand request, CancellationToken cancellationToken)
         {
-            var result = await _userRepository.ResetPasswordAsync(request.ChangePasswordRequest.Id,request.ChangePasswordRequest.NewPassword, request.Tenant, cancellationToken);
+            var result = await _userRepository.ResetPasswordAsync(request.ChangePasswordRequest.Id,request.ChangePasswordRequest.NewPassword, cancellationToken);
 
             if (result.IsSuccess)
             {

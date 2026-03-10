@@ -4,5 +4,5 @@ using Mattioli.Configurations.Models;
 
 namespace Feijuca.Auth.Application.Commands.User
 {
-    public record ChangePasswordCommand(string Tenant, ChangePasswordRequest ChangePasswordRequest) : ICommand<Result<bool>>;
+    public record ChangePasswordCommand(ChangePasswordRequest ChangePasswordRequest) : ICommand<Result<bool>>;
 }
