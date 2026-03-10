@@ -65,6 +65,10 @@ namespace Feijuca.Auth.Common.Errors
             "User.GetUserSessionsError",
             $"An error occurred while trying to get sessions an the user. {TechnicalMessage}"
         );
+        public static Error ChangePasswordError => new(
+            "User.ChangePassword",
+            $"An error occurred while updating the user's password. {TechnicalMessage}"
+        );
 
         public static void SetTechnicalMessage(string technicalMessage)
         {

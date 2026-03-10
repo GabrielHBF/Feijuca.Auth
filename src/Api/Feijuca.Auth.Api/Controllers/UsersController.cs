@@ -280,5 +280,22 @@ public class UsersController(ICommandMediator commandMediator, IQueryMediator qu
 
         return BadRequest(result.Error);
     }
+
+    [HttpPut]
+    [Route("chang-password", Name = nameof(ChangePassword))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        var result = await commandMediator.SendAsync(new ChangePasswordCommand(request), cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Data);
+        }
+
+        return BadRequest(result.Error);
+    }
 }
 
