@@ -35,8 +35,8 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
             // Assert
             Assert.True(result.IsSuccess);
             _userRepositoryMock.Verify(repo => repo.ResetPasswordAsync(
-                changePasswordCommand.ChangePasswordRequest.Id,
-                changePasswordCommand.ChangePasswordRequest.NewPassword,
+                changePasswordCommand.Id,
+                changePasswordCommand.ResetPasswordRequest.NewPassword,
                 cancellationToken), Times.Once);
 
             _userRepositoryMock.VerifyNoOtherCalls();
@@ -61,8 +61,8 @@ namespace Feijuca.Auth.Api.UnitTests.Command.Users
 
             Assert.False(result.IsSuccess);
             _userRepositoryMock.Verify(repo => repo.ResetPasswordAsync(
-                changePasswordCommand.ChangePasswordRequest.Id,
-                changePasswordCommand.ChangePasswordRequest.NewPassword,
+                changePasswordCommand.Id,
+                changePasswordCommand.ResetPasswordRequest.NewPassword,
                 cancellationToken), Times.Once);
 
             _userRepositoryMock.VerifyNoOtherCalls();

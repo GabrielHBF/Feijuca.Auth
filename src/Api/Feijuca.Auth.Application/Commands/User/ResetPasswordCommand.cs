@@ -4,5 +4,5 @@ using Mattioli.Configurations.Models;
 
 namespace Feijuca.Auth.Application.Commands.User
 {
-    public record ResetPasswordCommand(ResetPasswordRequest ChangePasswordRequest) : ICommand<Result<bool>>;
+    public record ResetPasswordCommand(Guid Id, ResetPasswordRequest ResetPasswordRequest) : ICommand<Result<bool>>;
 }
