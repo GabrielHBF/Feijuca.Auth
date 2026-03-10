@@ -295,9 +295,9 @@ public class UsersController(ICommandMediator commandMediator, IQueryMediator qu
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> ChangePassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
     {
-        var result = await commandMediator.SendAsync(new ChangePasswordCommand(request), cancellationToken);
+        var result = await commandMediator.SendAsync(new ResetPasswordCommand(request), cancellationToken);
 
         if (result.IsSuccess)
         {
