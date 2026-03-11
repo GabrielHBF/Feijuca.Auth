@@ -292,7 +292,7 @@ public class UsersController(ICommandMediator commandMediator, IQueryMediator qu
     /// otherwise, a 400 Bad Request status code if the current password is incorrect or validation fails.
     /// </returns>
     [HttpPut]
-    [Route("{id}", Name = nameof(ResetPassword))]
+    [Route("{id}/reset-password", Name = nameof(ResetPassword))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
