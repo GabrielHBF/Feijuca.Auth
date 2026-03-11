@@ -18,7 +18,7 @@ public class RealmsController(ICommandMediator commandMediator, IQueryMediator q
     /// Retrieves all registred realms.
     /// </summary>
     /// <returns>
-    /// A 200 Ok status code containing all realms registred in Keycloak
+    /// A 200 Ok status code containing all realms registred in Keycloak.
     /// </returns>
     /// <param name="cancellationToken">A <see cref="T:System.Threading.CancellationToken"/> that can be used to signal cancellation for the operation.</param>
     [HttpGet]
