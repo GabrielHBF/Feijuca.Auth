@@ -280,5 +280,31 @@ public class UsersController(ICommandMediator commandMediator, IQueryMediator qu
 
         return BadRequest(result.Error);
     }
-}
 
+    /// <summary>
+    /// Updates the password for a specific user within a tenant context.
+    /// </summary>
+    /// <param name="request">The request body containing the user ID, old password, and new password.</param>
+    /// <param name="id">The unique identifier of the user whose password is being updated.</param>
+    /// <param name="cancellationToken">A token that can be used to signal cancellation of the operation.</param>
+    /// <returns>
+    /// A 200 OK status code if the password was successfully updated;
+    /// otherwise, a 400 Bad Request status code if the current password is incorrect or validation fails.
+    /// </returns>
+    [HttpPut]
+    [Route("{id}", Name = nameof(ResetPassword))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromRoute] Guid id, [FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var result = await commandMediator.SendAsync(new ResetPasswordCommand(id,request), cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Data);
+        }
+
+        return BadRequest(result.Error);
+    }
+}
